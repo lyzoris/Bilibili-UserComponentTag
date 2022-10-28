@@ -1,11 +1,11 @@
-## Bilibili【哔哩哔哩】 用户成分标签 
+## Bilibili【哔哩哔哩】 用户成分标签 ![bilibili](https://experiments.sparanoid.net/favicons/v2/www.bilibili.com.ico)
 
 #### 作者：Lyzoris
 #### 版本：2.0
 #### 适用网页：Bilibili 视频页、个人动态页、用户空间页   
-#### 代码
-&ensp;&ensp;&ensp;&ensp;[**userTag.ts**](https://github.com/lyzoris/Bilibili-commentScript/blob/main/userTag.ts)
-&ensp;&ensp;&ensp;&ensp;[**userTag.js**](https://github.com/lyzoris/Bilibili-commentScript/blob/main/userTag.js)
+#### 代码&ensp;&ensp;&ensp;&ensp;[**userTag.ts**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.ts)&ensp;&ensp;&ensp;&ensp;[**userTag.js**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.js)
+#### 油猴链接  &ensp;&ensp;&ensp;&ensp;[Bilibili【哔哩哔哩】 用户成分标签](https://greasyfork.org/zh-CN/scripts/451354)
+#### 兼容性&ensp;&ensp;&ensp;&ensp;<img src=https://greasyfork.org/vite/assets/edge.e54a3dc2.svg width=20 height=20> Edge 80 or later   &ensp;&ensp;&ensp;&ensp;<img src=https://greasyfork.org/vite/assets/chrome.1b5cb774.svg width=20 height=20> Chrome 80 or later 
 
 #### 描述
 &ensp;&ensp;&ensp;&ensp;根据 Bilibili 用户近期动态、粉丝勋章和关注Up主来添加标签（面板可视化操作），可自定义标签关键词、样式,评论按关键词屏蔽，显示用户全部粉丝勋章，去除评论区关键词跳转搜索
@@ -108,9 +108,9 @@
 - 动态页批量点赞（动态页）-- 打开后在展开面板按键上方出现点赞按键
 
 > ### 标签样式、面板操作示例
-![成分标签](https://github.com/lyzoris/Bilibili-commentScript/blob/main/images/cf.png)
-![评论屏蔽](https://github.com/lyzoris/Bilibili-commentScript/blob/main/images/pl.png)
-![脚本设置](https://github.com/lyzoris/Bilibili-commentScript/blob/main/images/sz.png)
-![标签样式](https://github.com/lyzoris/Bilibili-commentScript/blob/main/images/标签样式.png)
+![成分标签](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/cf.png)
+![评论屏蔽](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/pl.png)
+![脚本设置](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/sz.png)
+![标签样式](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/标签样式.png)
 
 
