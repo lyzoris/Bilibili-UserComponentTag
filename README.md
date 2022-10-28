@@ -3,6 +3,9 @@
 #### 作者：Lyzoris
 #### 版本：2.0
 #### 适用网页：Bilibili 视频页、个人动态页、用户空间页   
+#### 代码
+&ensp;&ensp;&ensp;&ensp;[**userTag.ts**](https://github.com/lyzoris/Bilibili-commentScript/blob/main/userTag.ts)
+&ensp;&ensp;&ensp;&ensp;[**userTag.js**](https://github.com/lyzoris/Bilibili-commentScript/blob/main/userTag.js)
 
 #### 描述
 &ensp;&ensp;&ensp;&ensp;根据 Bilibili 用户近期动态、粉丝勋章和关注Up主来添加标签（面板可视化操作），可自定义标签关键词、样式,评论按关键词屏蔽，显示用户全部粉丝勋章，去除评论区关键词跳转搜索
