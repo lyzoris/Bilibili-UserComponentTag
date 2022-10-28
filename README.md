@@ -108,7 +108,9 @@
 - 动态页批量点赞（动态页）-- 打开后在展开面板按键上方出现点赞按键
 
 > ### 标签样式、面板操作示例
-
-
+![成分标签](https://github.com/lyzoris/Bilibili-commentScript/blob/main/images/cf.png)
+![评论屏蔽](https://github.com/lyzoris/Bilibili-commentScript/blob/main/images/pl.png)
+![脚本设置](https://github.com/lyzoris/Bilibili-commentScript/blob/main/images/sz.png)
+![标签样式](https://github.com/lyzoris/Bilibili-commentScript/blob/main/images/标签样式.png)
 
 
