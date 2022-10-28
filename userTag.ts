@@ -1245,5 +1245,4 @@
         script_like.style.display = 'none';
         dynamic_btn.disabled = true;
     }
-    console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
 })();
