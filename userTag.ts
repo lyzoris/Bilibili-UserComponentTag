@@ -726,8 +726,7 @@
             delete tag[tag_index]
             let tag1 = {...tag};
             tag = {};
-            let j = 0;
-            Object.values(tag1).forEach(i=>{tag[j] = i;j++;})
+            Object.values(tag1).forEach((value,i)=>{tag[i] = value;})
             tag_list.pop(tag);
         };
         (new_tag.children[0] as HTMLDivElement).onclick = deleteTag;
@@ -794,19 +793,20 @@
             this.tag_inner = `<div class='tag-name' style='color: ${this.color}; width:${this.width}px;'><div class='tag-font'>${this.text}</div></div>`;
             this.inner = `<div class='userTag ${this.tag_class} ${this.tag_id}' title="${this.child_tag.join(' ')}"><div class='tag-class' style='border-color:#8da8e8;color:#5e80c4; width:${this.tag_width}px'><div class='tag-font'>${this.tag}</div></div>${this.tag_inner}</div>`;
         };
+        // 子标签检测
         ChildTag(tag_dic:any){
             if(RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/).test(tag_dic.reg)){
                 this.child_tag = tag_dic.reg.match(/(?<=\[)(.*?)(?=\])/g);
                 let regs:Array<string> = [];
                 tag_list.list.filter(i=>{if(this.child_tag.includes(i.text)){return i}}).forEach(e=>{
-                    let new_reg = String(e.reg).match(/\((.*?)\){1,2}/g)
+                    let new_reg = String(e.reg).match(/\((.*?)\){1,2}/g);
                     if(new_reg){
                         regs.splice(0,0,...new_reg);
                     }else{
-                        regs.push(`(?=.*(${String(e.reg).replace(/\//g,'')}))`)
+                        regs.push(`(?=.*(${String(e.reg).replace(/\//g,'')}))`); 
                     }
                 })
-                this.reg = new RegExp(`^${regs.join('')}.*`)
+                this.reg = new RegExp(`^${regs.join('')}.*`);
             }
         };
         // 字符串转换成16进制
@@ -918,21 +918,21 @@
             }
         }
         detect(pid:string, c:Element) {
-            const p1 = new Promise((resolve)=>{Requests(ApiUrl.blog + pid,(data:string)=>{resolve(data)})});
-            const p2 = new Promise((resolve)=>{Requests(ApiUrl.medal + pid,(data:string)=>{resolve(data)})});
-            const p3 = new Promise((resolve)=>{Requests(ApiUrl.concerns + pid+'&pn=1&ps=50',(data:string)=>{resolve(data)})});
             let p = [];
+            const p1 = (resolve:any)=>{Requests(ApiUrl.blog + pid,(data:string)=>{resolve(data)})};
+            const p2 = (resolve:any)=>{Requests(ApiUrl.medal + pid,(data:string)=>{resolve(data)})};
+            const p3 = (resolve:any)=>{Requests(ApiUrl.concerns + pid+'&pn=1&ps=50',(data:string)=>{resolve(data)})};
             if(this.detectConcerns&&this.detectMedal){
                 p = [p1,p2,p3];
             }else if(this.detectConcerns&&!this.detectMedal){
-                p = [p1,p3];
+                p = [p1,p3]
             }else if(!this.detectConcerns&&this.detectMedal){
                 p = [p1,p2];
             }else{
-                p = [p1];
+                p = [p1]
             }
             // 异步函数合并返回的数据
-            Promise.all(p).then((result:any)=>{
+            Promise.all(p.map(i=>new Promise(i))).then((result:any)=>{
                 this.list.map(i => i.detect(pid, c, result.join('')));
                 if(this.detectMedal){
                     this.medal(pid,c,result[1]);
@@ -1245,4 +1245,5 @@
         script_like.style.display = 'none';
         dynamic_btn.disabled = true;
     }
+    console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
 })();
