@@ -6,25 +6,27 @@
 #### 代码&ensp;&ensp;&ensp;&ensp;[**userTag.ts**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.ts)&ensp;&ensp;&ensp;&ensp;[**userTag.js**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.js)
 #### 油猴链接  &ensp;&ensp;&ensp;&ensp;[Bilibili【哔哩哔哩】 用户成分标签](https://greasyfork.org/zh-CN/scripts/451354)
 #### 兼容性&ensp;&ensp;&ensp;&ensp;<img src=https://greasyfork.org/vite/assets/edge.e54a3dc2.svg width=20 height=20> Edge 80 or later   &ensp;&ensp;&ensp;&ensp;<img src=https://greasyfork.org/vite/assets/chrome.1b5cb774.svg width=20 height=20> Chrome 80 or later 
-
 #### 描述
-&ensp;&ensp;&ensp;&ensp;根据 Bilibili 用户近期动态、粉丝勋章和关注Up主来添加标签（面板可视化操作），可自定义标签关键词、样式,评论按关键词屏蔽，显示用户全部粉丝勋章，去除评论区关键词跳转搜索
+&ensp;&ensp;&ensp;&ensp;根据 Bilibili 评论区用户近期动态、粉丝勋章和关注Up主内容来给其添加自定义标签（面板可视化操作）    
+&ensp;&ensp;&ensp;&ensp;可自定义标签内容、规则、样式，用户评论关键词屏蔽，显示用户全部粉丝勋章，去除评论区关键词跳转搜索  
 
 #### 功能
-&ensp;&ensp;&ensp;&ensp; 标签功能：自定义标签名称，标签内容，标签关键词规则，标签颜色，是否隐藏评论，用户粉丝勋章显示  
+&ensp;&ensp;&ensp;&ensp;成分标签：自定义标签名称，标签内容，标签关键词规则，标签颜色，是否隐藏评论，用户粉丝勋章显示    
 
-&ensp;&ensp;&ensp;&ensp;标签规则：每个关键词用 & 或 | 分隔；& 表示匹配所有关键词，| 表示匹配任一关键词，组合匹配用 ( ) （详情见面板中【标签规则】）   
+&ensp;&ensp;&ensp;&ensp;评论屏蔽：自定义评论屏蔽关键词规则（同【标签规则】），评论区、动态页面匹配到后将屏蔽该用户评论内容  
 
-&ensp;&ensp;&ensp;&ensp;其他功能：用户评论关键词屏蔽，用户勋章墙快捷显示，去除关键词跳转，评论结尾增加 收起评论 按键，动态批量点赞
+&ensp;&ensp;&ensp;&ensp;其他功能：【视频页】用户勋章墙快捷显示，【视频页】去除关键词跳转，【动态页】评论结尾增加 收起评论 按键，【动态页】批量点赞动态  
 
-&ensp;&ensp;&ensp;&ensp;使用脚本： 运行脚本后在B站视频页面右下角会存在面板展开按键，点击展开进行标签配置，展开后再次点击即可隐藏
+&ensp;&ensp;&ensp;&ensp;使用脚本：运行脚本后在B站视频和动态页面右下角会存在面板展开按键，点击展开进行标签配置和面板设置，再次点击即可隐藏  
 
-#### 说明  
-&ensp;&ensp;&ensp;&ensp;作者不针对任何玩家或群体，不表达任何倾向，对于因为打标签行为而造成不愉快的用户，作者在此道歉   
+#### 说明 
+&ensp;&ensp;&ensp;&ensp;由于 Bilibili 视频页面存在新、旧版本，脚本主要针对新版页面开发，故不能保证旧版页面体验良好    
+   
+&ensp;&ensp;&ensp;&ensp;作者不针对任何玩家或群体，不表达任何倾向，对于因为打标签行为而造成不愉快的用户，作者在此道歉     
 &ensp;&ensp;&ensp;&ensp;作者更新较慢，如有侵权、bug、任何意见和建议，请评论留言  
 
 #### 参考  
-> [新·三相之力指示器](https://greasyfork.org/zh-CN/scripts/451150)&ensp;&ensp;&ensp;&ensp;[原神玩家指示器](https://greasyfork.org/zh-CN/scripts/450720)
+&ensp;&ensp;&ensp;&ensp;[新·三相之力指示器](https://greasyfork.org/zh-CN/scripts/451150)&ensp;&ensp;&ensp;&ensp;[原神玩家指示器](https://greasyfork.org/zh-CN/scripts/450720)  
 
 --------------------------
 ## 脚本使用说明
