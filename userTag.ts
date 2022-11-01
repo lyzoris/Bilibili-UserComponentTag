@@ -1183,7 +1183,7 @@
     };
     // 读取油猴配置
     const ConfigInit = ()=>{
-        refreshTime = GM_getValue('refreshTime',5000);
+        refreshTime = GM_getValue('RefreshTime',5000);
         refresh_time.value = String(refreshTime/1000);
         (document.querySelector("#show-time") as HTMLDivElement).innerText = refresh_time.value + 's';
         tagname_hide.checked = GM_getValue('TagNameHide',false);
