@@ -6,6 +6,7 @@
         medal: 'https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id='
     };
     const is_new = document.getElementsByClassName('item goback').length != 0; // 检测B站版本
+    const childTagReg = new RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
     const Style_tagName:HTMLStyleElement = document.createElement('style');
     const Style_tagSize:HTMLStyleElement = document.createElement('style');
     const Style_tagPlace:HTMLStyleElement = document.createElement('style');
@@ -247,7 +248,7 @@
         transform: scale(0.9) translate(-10%, -10%);
         line-height: 20px;
         background-color: #ededed;
-        margin-left: 3px;
+        margin-left: 5px;
         margin-top: 5px;
         cursor: pointer;
         box-shadow: 0px 1px 5px 0 #00000033;
@@ -442,7 +443,7 @@
     }
     
     .topnav-active {
-        color: #3f51b5;
+        color: #dd7a7a;
         background-color: #ffffff;
         border-radius: 4px;
         height: 16px;
@@ -519,7 +520,7 @@
         <div class="scriptBar tag-bar">
             <label class="tagbar-label" for="input-tagname" title="标签的分类，比如游戏、Vtuber、主播、UP主等&#10;用来识别标签类型，尽量短一些">标签分类</label><input type="text" id="input-tagname" class="input-tag" autocomplete="off">
             <label class="tagbar-label" for="input-tagtext" title="标签具体显示的内容，以区别每个标签">标签内容</label><input type="text" id="input-tagtext" class="input-tag" autocomplete="off">
-            <label class="tagbar-label" for="input-tagreg" title="匹配用户标签的关键词，使用 & 和 | 分隔，使用 ( ) 组合&#10;多关键词任一匹配：王者荣耀或王者 =&gt; 王者荣耀|王者 &#10;多关键词同时匹配：王者荣耀与吃鸡 =&gt; 王者荣耀&吃鸡 &#10;多关键词组合匹配：(王者|王者荣耀)&(吃鸡|和平精英)">标签规则</label><input type="text" id="input-tagreg"
+            <label class="tagbar-label" for="input-tagreg" title="匹配用户标签的关键词，使用 & 和 | 分隔，使用 ( ) 组合&#10;多关键词任一匹配：王者荣耀或王者 -&gt; 王者荣耀|王者 &#10;多关键词同时匹配：王者荣耀与吃鸡 -&gt; 王者荣耀&吃鸡 &#10;多关键词组合匹配：(王者|王者荣耀)&(吃鸡|和平精英)&#10;&#10;合并标签时填写 [子标签内容][子标签内容] 如[王者][原神]&#10;注意：面板中合并标签需在所有子标签之后">标签规则</label><input type="text" id="input-tagreg"
                 class="input-tag" autocomplete="off">
             <label class="tagbar-label" for="input-tagcolor" title="标签文字颜色，可在面板中预览">标签颜色</label><input type="color" name="" id="input-tagcolor">
             <label class="tagbar-label" style="margin: 0 0 0 12px ;" for="tag-hide">屏蔽标签用户评论<input type="checkbox" id="tag-hide" style="margin-left:9px;height:11px"></label>
@@ -716,7 +717,7 @@
     // 添加并保存标签
     const addTag = (tag_dic:any) => {
         let title:string = `${tag_dic.tag}&#10;规则：${tag_dic.reg}&#10;隐藏评论：${tag_dic.hide}`;
-        let new_tag = insertTag(taglist, tag_dic.text, tag_dic.color, title);
+        let new_tag = insertTag(taglist, tag_dic);
         let tag_index = Object.keys(tag).length;
         tag[tag_index] = tag_dic;
         tag_list.push(tag, tag_index);
@@ -740,12 +741,19 @@
         }
     };
     // 插入标签
-    const insertTag = (parentNode:HTMLDivElement, text:string, color:string = "#49414b", title:string="") => {
+    const insertTag = (parentNode:HTMLDivElement, dic:any) => {
         let new_tag = document.createElement('div');
-        new_tag.innerHTML = `<div class="delete-tag">x</div><p class="tag-info" title="${title}">${text}</p>`;
+        let title = '';
+        if(childTagReg.test(dic.reg)){
+            new_tag.style.border = 'solid 1px #4fc3f7';
+            title = `分类：${dic.tag} （合并标签）&#10;子标签：${dic.reg}&#10;隐藏评论：${dic.hide}`;
+        }else{
+            title =`分类：${dic.tag}&#10;规则：${dic.reg}&#10;隐藏评论：${dic.hide}`;
+        }
+        new_tag.innerHTML = `<div class="delete-tag">x</div><p class="tag-info" title="${title}">${dic.text}</p>`;
         new_tag.classList.add('tags');
-        new_tag.style.width = measureTextWidth("12px", text) + 8 + 'px';
-        new_tag.style.color = color;
+        new_tag.style.width = measureTextWidth("12px", dic.text) + 8 + 'px';
+        new_tag.style.color = dic.color;
         parentNode.appendChild(new_tag);
         return new_tag;
     };
@@ -792,10 +800,10 @@
             this.ChildTag(tag_dic);
             this.tag_inner = `<div class='tag-name' style='color: ${this.color}; width:${this.width}px;'><div class='tag-font'>${this.text}</div></div>`;
             this.inner = `<div class='userTag ${this.tag_class} ${this.tag_id}' title="${this.child_tag.join(' ')}"><div class='tag-class' style='border-color:#8da8e8;color:#5e80c4; width:${this.tag_width}px'><div class='tag-font'>${this.tag}</div></div>${this.tag_inner}</div>`;
-        };
+        }
         // 子标签检测
         ChildTag(tag_dic:any){
-            if(RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/).test(tag_dic.reg)){
+            if(childTagReg.test(tag_dic.reg)){
                 this.child_tag = tag_dic.reg.match(/(?<=\[)(.*?)(?=\])/g);
                 let regs:Array<string> = [];
                 tag_list.list.filter(i=>{if(this.child_tag.includes(i.text)){return i}}).forEach(e=>{
@@ -808,7 +816,7 @@
                 })
                 this.reg = new RegExp(`^${regs.join('')}.*`);
             }
-        };
+        }
         // 字符串转换成16进制
         Str2Hex(str:string,state:string){
             let hex:string = '';
@@ -822,7 +830,7 @@
             // /^(?=.*reg1)(?=.*reg2).*/
             let regStr = query.indexOf('&') !== -1 ? `^${query.split('&').map(q =>`(?=.*${q})`).join('')}.*`: query;
             return new RegExp(regStr);
-        };
+        }
         // 检查列表中是否存在该用户 pid
         check(pid:string, c:any) {
             if (this.list.has(pid)) {
@@ -837,7 +845,7 @@
                     }
                 }
             } 
-        };
+        }
         // 检测用户标签
         detect(pid:string, c:any, st:string) {
             //添加标签
@@ -857,7 +865,7 @@
             } else {
                 this.nolist.add(pid);
             }
-        };
+        }
         // 标签合并
         combine(pid:string,c:any){
             if(this.child_tag.length!=0){
@@ -872,7 +880,7 @@
                     }
                 })
             }
-        };
+        }
     }
     // 标签列表
     class TagList {
@@ -925,11 +933,11 @@
             if(this.detectConcerns&&this.detectMedal){
                 p = [p1,p2,p3];
             }else if(this.detectConcerns&&!this.detectMedal){
-                p = [p1,p3]
+                p = [p1,p3];
             }else if(!this.detectConcerns&&this.detectMedal){
                 p = [p1,p2];
             }else{
-                p = [p1]
+                p = [p1];
             }
             // 异步函数合并返回的数据
             Promise.all(p.map(i=>new Promise(i))).then((result:any)=>{
@@ -1245,5 +1253,4 @@
         script_like.style.display = 'none';
         dynamic_btn.disabled = true;
     }
-    console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
 })();
