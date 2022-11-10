@@ -120,9 +120,13 @@
 - 动态页批量点赞（动态页）-- 打开后在展开面板按键上方出现点赞按键
 
 > ### 标签样式、面板操作示例
-![成分标签](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/cf.png)
-![评论屏蔽](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/pl.png)
-![脚本设置](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/sz.png)
-![标签样式](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/标签样式.png)
+<p class="half">
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/cf.png" width="40%" alt="用户标签"/>
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/pl.png" width="40%" alt="评论屏蔽"/>
+</p>
+<p class="half">
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/sz.png" width="40%" alt="脚本设置"/>
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/标签样式.png" width="40%" alt="标签样式"/>
+</p>
 
 
