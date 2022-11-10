@@ -7,6 +7,7 @@
     };
     const is_new = document.getElementsByClassName('item goback').length != 0; // 检测B站版本
     const childTagReg = new RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
+    const tagReg = new RegExp(/[\n\r"'{}、]/);
     const Style_tagName:HTMLStyleElement = document.createElement('style');
     const Style_tagSize:HTMLStyleElement = document.createElement('style');
     const Style_tagPlace:HTMLStyleElement = document.createElement('style');
@@ -619,17 +620,21 @@
     // 获取用户输入
     add_tag_btn.onclick = () => {
         if (tag_name.value && tag_text.value && tag_reg.value) {
-            addTag({
-                tag: tag_name.value,
-                text: tag_text.value,
-                reg: tag_reg.value,
-                color: tag_color.value,
-                hide: tag_hide.checked
-            });
-            tag_name.value = '';
-            tag_text.value = '';
-            tag_reg.value = '';
-            tag_hide.checked = false;
+            if(!tagReg.test(tag_reg.value)){
+                addTag({
+                    tag: tag_name.value,
+                    text: tag_text.value,
+                    reg: tag_reg.value,
+                    color: tag_color.value,
+                    hide: tag_hide.checked
+                });
+                tag_name.value = '';
+                tag_text.value = '';
+                tag_reg.value = '';
+                tag_hide.checked = false;
+            }else{
+                alert(`标签规则不应该包含‘ “ 、" ' { } \\n \\r等字符`)
+            }
         } else {
             alert('请将标签信息补充完整');
         }
@@ -640,7 +645,6 @@
         let key_storage:Array<string> = GM_listValues();
         key_storage.forEach(i=>{
             exportData[i] = GM_getValue(i,null);
-
         })
         GM_setClipboard(JSON.stringify(exportData));
         alert('已导出标签数据到剪切板！');
@@ -687,7 +691,7 @@
             comment_reg.value = '';
         } else {
             alert('请将关键词正则信息补充完整');
-        };
+        }
     };
 
     const addKeyWord = (reg_text:string) => {
@@ -716,7 +720,6 @@
 
     // 添加并保存标签
     const addTag = (tag_dic:any) => {
-        let title:string = `${tag_dic.tag}&#10;规则：${tag_dic.reg}&#10;隐藏评论：${tag_dic.hide}`;
         let new_tag = insertTag(taglist, tag_dic);
         let tag_index = Object.keys(tag).length;
         tag[tag_index] = tag_dic;
@@ -727,7 +730,7 @@
             delete tag[tag_index]
             let tag1 = {...tag};
             tag = {};
-            Object.values(tag1).forEach((value,i)=>{tag[i] = value;})
+            Object.values(tag1).forEach((value,i)=>{tag[i] = value});
             tag_list.pop(tag);
         };
         (new_tag.children[0] as HTMLDivElement).onclick = deleteTag;
@@ -744,16 +747,25 @@
     const insertTag = (parentNode:HTMLDivElement, dic:any) => {
         let new_tag = document.createElement('div');
         let title = '';
-        if(childTagReg.test(dic.reg)){
-            new_tag.style.border = 'solid 1px #4fc3f7';
-            title = `分类：${dic.tag} （合并标签）&#10;子标签：${dic.reg}&#10;隐藏评论：${dic.hide}`;
+        let text = '';     
+        let color = '';   
+        if(dic.text){
+            if(childTagReg.test(dic.reg)){
+                new_tag.style.border = 'solid 1px #4fc3f7';
+                title = `分类：${dic.tag} （合并标签）&#10;子标签：${dic.reg}&#10;隐藏评论：${dic.hide}`;
+            }else{
+                title =`分类：${dic.tag}&#10;规则：${dic.reg}&#10;隐藏评论：${dic.hide}`;
+            }
+            text = dic.text;
+            color = dic.color
         }else{
-            title =`分类：${dic.tag}&#10;规则：${dic.reg}&#10;隐藏评论：${dic.hide}`;
+            text = dic;
+            color = '#000';
         }
-        new_tag.innerHTML = `<div class="delete-tag">x</div><p class="tag-info" title="${title}">${dic.text}</p>`;
+        new_tag.innerHTML = `<div class="delete-tag">x</div><p class="tag-info" title="${title}">${text}</p>`;
         new_tag.classList.add('tags');
-        new_tag.style.width = measureTextWidth("12px", dic.text) + 8 + 'px';
-        new_tag.style.color = dic.color;
+        new_tag.style.width = measureTextWidth("12px", text) + 8 + 'px';
+        new_tag.style.color = color;
         parentNode.appendChild(new_tag);
         return new_tag;
     };
@@ -775,7 +787,6 @@
         tag_id:string;
         reg:RegExp;
         hide:boolean;
-        color:string;
         tag_size:string;
         tag_width:number;
         width:number;
@@ -791,14 +802,13 @@
             this.tag_id = this.Str2Hex(this.text,'id');
             this.reg = Tag.MultiReg(tag_dic.reg);
             this.hide = tag_dic.hide;
-            this.color = tag_dic.color;
             this.tag_size = tagSize==='middle'? '15px' : '12px';
             this.tag_width = measureTextWidth(this.tag_size, this.tag);
             this.width = measureTextWidth(this.tag_size, this.text);
             this.list = new Set();
             this.nolist = new Set();
             this.ChildTag(tag_dic);
-            this.tag_inner = `<div class='tag-name' style='color: ${this.color}; width:${this.width}px;'><div class='tag-font'>${this.text}</div></div>`;
+            this.tag_inner = `<div class='tag-name' style='color: ${tag_dic.color}; width:${this.width}px;'><div class='tag-font'>${this.text}</div></div>`;
             this.inner = `<div class='userTag ${this.tag_class} ${this.tag_id}' title="${this.child_tag.join(' ')}"><div class='tag-class' style='border-color:#8da8e8;color:#5e80c4; width:${this.tag_width}px'><div class='tag-font'>${this.tag}</div></div>${this.tag_inner}</div>`;
         }
         // 子标签检测
@@ -927,9 +937,9 @@
         }
         detect(pid:string, c:Element) {
             let p = [];
-            const p1 = (resolve:any)=>{Requests(ApiUrl.blog + pid,(data:string)=>{resolve(data)})};
-            const p2 = (resolve:any)=>{Requests(ApiUrl.medal + pid,(data:string)=>{resolve(data)})};
-            const p3 = (resolve:any)=>{Requests(ApiUrl.concerns + pid+'&pn=1&ps=50',(data:string)=>{resolve(data)})};
+            const p1 = (resolve:any)=>{Requests(ApiUrl.blog + pid,(data:string)=>{resolve(data)},'blog')};
+            const p2 = (resolve:any)=>{Requests(ApiUrl.medal + pid,(data:string)=>{resolve(data)},'medal')};
+            const p3 = (resolve:any)=>{Requests(ApiUrl.concerns + pid+'&pn=1&ps=50',(data:string)=>{resolve(data)},'concerns')};
             if(this.detectConcerns&&this.detectMedal){
                 p = [p1,p2,p3];
             }else if(this.detectConcerns&&!this.detectMedal){
@@ -1044,7 +1054,7 @@
         }
     };
     // 发起网络请求
-    const Requests = (requestUrl:string,func:any)=>{
+    const Requests = (requestUrl:string,func:any,state:string)=>{
         GM_xmlhttpRequest({
             method: "get",
             url: requestUrl,
@@ -1054,7 +1064,32 @@
             },
             onload: function(res: { status: number; response: string; }) {
                 if (res.status === 200) {
-                    let data= JSON.stringify(JSON.parse(res.response).data);
+                   let data;
+                    if(state==='blog'){
+                        // 动态
+                        let data_list:any = []
+                        let data_json = JSON.parse(res.response)?.data?.items||[];
+                        if(data_json.length>0){
+                            data_json.map(i=>{
+                                let zhuanf_text = i?.modules?.module_dynamic?.desc?.text||'';
+                                let origin_text = i?.orig?.modules?.module_dynamic?.desc?.text||'';
+                                if(zhuanf_text||origin_text){
+                                    data_list.push({'text':zhuanf_text,'orig_text':origin_text})
+                                }
+                            })
+                        }
+                        data = JSON.stringify(data_list)
+                    }else if(state==='concerns'){
+                        // 关注列表
+                        let data_list:any = []
+                        let data_json = JSON.parse(res.response)?.data?.list||[];
+                        if(data_json.length>0){
+                            data_json.map(i=>{data_list.push(i?.uname)})
+                        }
+                        data = data_list.join(' ')
+                    }else{
+                        data = JSON.stringify(JSON.parse(res.response)?.data||[]);
+                    }
                     func(data)
                 } else {
                     console.log('加载用户信息失败');
