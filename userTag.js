@@ -1,476 +1,45 @@
-(function() {
-        "use surict";
-        const ApiUrl = {
-            blog: 'https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?&host_mid=',
-            concerns: 'https://api.bilibili.com/x/relation/followings?vmid=',
-            medal: 'https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id='
-        };
-        const is_new = document.getElementsByClassName('item goback').length != 0;
-        const childTagReg = new RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
-        const Style_tagName = document.createElement('style');
-        const Style_tagSize = document.createElement('style');
-        const Style_tagPlace = document.createElement('style');
-        const Style_script = document.createElement('style');
-        const Html_script = document.createElement('div');
-        const tagSizeDict = {
-            small: `.tag-class,.tag-name{height: 12px;line-height: 12px;}.tag-font{transform: scale(0.5) translate(-50%, -50%);}`,
-            middle: `.tag-class,.tag-name{height: 16px;line-height: 16px;}.tag-font{transform: scale(0.6) translate(-40%, -30%);}`
-        };
-        const tagHideDict = {
-            true: `.tag-class {display:none;}`,
-            false: `.tag-class {display:block;}`
-        };
-        const tagPlaceDict = {
-            middle: `.userTag {display: inline-block;position: relative;text-align: center;border-width: 0px;vertical-align: text-top; margin-left: 4px;cursor: default;}`,
-            sub: `.userTag {display: inline-block;position: relative;text-align: center;border-width: 0px;vertical-align: sub; margin-left: 4px;cursor: default;}`
-        };
-        Style_tagSize.innerHTML = tagSizeDict.middle;
-        Style_tagName.innerHTML = tagHideDict.false;
-        Style_tagPlace.innerHTML = tagPlaceDict.middle;
-        Style_script.innerHTML = ` 
-    .tag-name {
-        border-color: rgba(169, 195, 233, 0.1803921568627451);
-        color: rgba(87, 127, 184, 1);
-        background-color: #9ebae833;
-        float: left;
-        text-align: center;
-        border-width: 0.5px;
-        border-style: solid;
-        border-bottom-left-radius: 1px;
-        border-top-left-radius: 1px;
-    }
-    
-    .tag-class {
-        position: relative;
-        border-bottom-right-radius: 1px;
-        border-top-right-radius: 1px;
-        float: left;
-        box-sizing: content-box;
-        text-align: center;
-        border-width: 0.5px;
-        border-color: #f25d8e;
-        border-style: solid;
-        border-bottom-left-radius: 1px;
-        border-top-left-radius: 1px;
-        color: #f25d8e;
-    }
-    
-    .tag-font {
-        width: 200%;
-        height: 200%;
-        font-weight: 400;
-        transform-origin: center;
-        font-size: 20px;
-        line-height: 24px;
-    }
-    
-    .script-hide {
-        position: fixed;
-        right: 10px;
-        bottom: 10px;
-        width: 20px;
-        height: 20px;
-        font-size: 15px;
-        line-height: 20px;
-        text-align: center;
-        color: #009688;
-        background-color: #e2e1e2b3;
-        border-radius: 5px;
-        box-shadow: 2px 0px 4px 0px #0000002b;
-    }
-    
-    .script-hide svg{
-        width: 100%;
-        height: 100%;
-    }
-    
-    .script-hide:hover {
-        background-color: #76cb9dc9;
-        box-shadow: 2px 0px 4px 0px #76cb9d91;
-    }
-    
-    .script-hide:hover svg path {
-        fill: #ffffff;
-    }
-    .script-like{
-        display: none;
-        position: fixed;
-        right: 10px;
-        bottom: 40px;
-        width: 20px;
-        height: 20px;
-        font-size: 15px;
-        line-height: 26px;
-        text-align: center;
-        color: #009688;
-        background-color: #e2e1e2b3;
-        border-radius: 5px;
-        box-shadow: 2px 0px 4px 0px #0000002b;
-    }
-    .script-like:hover{
-        background-color: #76cb9dc9;
-        box-shadow: 2px 0px 4px 0px #76cb9d91;
-    }
-    .script-like svg{
-        width: 80%;
-        height: 80%;
-        margin-left: 1px;
-    }
-    .script-like:hover svg path {
-        fill: #ffffff;
-    }
-    
-    .tagbar-active {
-        background-color: #ab85d1c9;
-        box-shadow: 2px 0px 4px 0px #c893e291;
-    }
-    
-    .tagbar-active svg path {
-        fill: #ffffff;
-    }
-    
-    .script-main {
-        display: none;
-        position: fixed;
-        z-index: 999;
-        right: 65px;
-        bottom: 20px;
-        background-color: #ffffff;
-        color: #929292;
-        height: 300px;
-        width: 250px;
-        border-radius: 4px;
-        box-shadow: 0px 0px 4px 2px #0000002b;
-        padding: 10px;
-    }
-    
-    .tag-bar {
-        width: 250px;
-        height: 90%;
-        margin-top: 30px;
-    }
-    
-    .comment-bar {
-        display: none;
-        width: 250px;
-        margin-top: 30px;
-        height: 90%;
-    }
-    
-    .setting-bar {
-        display: none;
-        width: 250px;
-        margin-top: 30px;
-    }
-    
-    svg.icon {
-        width: 10px;
-        height: 10px;
-    }
-    
-    .tagbar-action {
-        position: absolute;
-        top: 2px;
-        width: 15px;
-        height: 15px;
-        line-height: 15px;
-        margin: 0;
-        border-radius: 50%;
-        background-color: #fff0;
-        text-align: center;
-        font-size: small;
-        color: #929292;
-    }
-
-    .script-main input[type="checkbox"],input[type="radio"]{
-        appearance: auto;
-    }
-    
-    .tagbar-btn {
-        background-color: #ffffff;
-        color: #929292;
-        height: 20px;
-        margin: 5px 0px 5px 0;
-        padding: 0 4px 0 4px;
-        border: none;
-        border-radius: 4px;
-        font-weight: bold;
-        transform-origin: center;
-        transform: scale(0.9) translate(-10%, -10%);
-        font-size: 13px;
-        text-align: center;
-        box-shadow: #b1b1b13d 0px 0px 3px 2px;
-    }
-    
-    .tagbar-btn:hover {
-        color: #37a279ab;
-    }
-    
-    .tagbar-btn:active {
-        color: #b4b6ee;
-    }
-    
-    .input-tag {
-        margin-bottom: 4px;
-        width: 74%;
-        left: 20%;
-        border-radius: 4px;
-        border: solid 1px #b0b0b0;
-    }
-    
-    .input-tag:focus {
-        outline: none;
-        background-color: #d5d5d559;
-    }
-    
-    .tagbar-label {
-        font-size: 12px;
-        display: inline-block;
-        margin-right: 10px;
-    }
-    
-    #input-tagcolor {
-        width: 52px;
-        height: 20px;
-        border-radius: 4px;
-        border: solid 1px #b0b0b0;
-    }
-    
-    .tags {
-        display: inline-block;
-        width: 40px;
-        height: 20px;
-        font-size: 12px;
-        border-radius: 5px;
-        color: #49414b;
-        text-align: center;
-        transform-origin: center;
-        transform: scale(0.9) translate(-10%, -10%);
-        line-height: 20px;
-        background-color: #ededed;
-        margin-left: 5px;
-        margin-top: 5px;
-        cursor: pointer;
-        box-shadow: 0px 1px 5px 0 #00000033;
-    }
-    
-    .tags:hover {
-        background-color: #ced1d2c4;
-    }
-    
-    .delete-tag {
-        position: relative;
-        top: -3px;
-        right: 0;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        transform-origin: center;
-        transform: scale(0.6) translate(-50%, -50%);
-        font-size: 20px;
-        color: #837171;
-        line-height: 18px;
-        background-color: #b2bfc67a;
-        box-shadow: 0px 0px 3px 1px #00000033;
-    }
-    
-    .delete-tag:hover {
-        color: white;
-        background-color: crimson;
-    }
-    
-    .delete-tag:active {
-        color: white;
-        background-color: #f0f;
-    }
-    
-    .tag-info {
-        position: relative;
-        margin-top: -20px;
-        font-weight: bold;
-    }
-    
-    #refresh-time {
-        width: 80px;
-        height: 5px;
-        outline: none;
-        margin: 0 10px 0 25px;
-        appearance: none;
-        background: #b6b2b8;
-        border-radius: 4px;
-    }
-    
-    #refresh-time::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        box-shadow: 0 0 2px;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-size: cover;
-        background-color: #fff;
-    }
-    
-    .tagbar-taglist {
-        margin-top: 2px;
-        width: 97%;
-        height: 51%;
-        bottom: 0px;
-        border-radius: 4px;
-        background-color: rgb(243, 238, 233);
-        overflow-y: auto;
-        padding: 4px;
-    }
-    
-    .tagbar-commentlist {
-        margin-top: 35px;
-        width: 97%;
-        height: 75.5%;
-        bottom: 0px;
-        border-radius: 4px;
-        background-color: rgb(243, 238, 233);
-        overflow-y: auto;
-        padding: 4px;
-    }
-    
-    .tagbar-taglist::-webkit-scrollbar,
-    .tagbar-commentlist::-webkit-scrollbar,
-    .medal-table::-webkit-scrollbar,
-    #import-area::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
-    }
-    
-    .tagbar-taglist::-webkit-scrollbar-thumb,
-    .tagbar-commentlist::-webkit-scrollbar-thumb,
-    .medal-table::-webkit-scrollbar-thumb,
-    #import-area::-webkit-scrollbar-thumb {
-        border-radius: 5px;
-        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-        background: rgba(0, 0, 0, 0.2);
-    }
-    
-    .tagbar-taglist::-webkit-scrollbar-track,
-    .tagbar-commentlist::-webkit-scrollbar-track,
-    .medal-table::-webkit-scrollbar-track {
-        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-        border-radius: 0px;
-        background: rgba(0, 0, 0, 0.1);
-    }
-    
-    #flash-time {
-        margin-right: 10px;
-    }
-    
-    .tagSize {
-        margin: 5px 0 5px 0;
-    }
-    
-    .tagSize-label {
-        display: inline-block;
-        text-align: center;
-    }
-    
-    .tagSize-radio {
-        vertical-align: text-bottom;
-    }
-    
-    .set-label {
-        font-size: 12px;
-        display: inline-block;
-        margin: 5px 0 5px 0;
-    }
-    
-    .medalTag {
-        margin-left: 5px;
-        cursor: pointer;
-    }
-    
-    .medal-table {
-        display: none;
-        position: absolute;
-        padding: 5px;
-        max-width: 230px;
-        max-height: 160px;
-        overflow-y: auto;
-        font-size: 12px;
-        background-color: #fffefd;
-        border-radius: 5px;
-        cursor: default;
-        z-index: 2;
-        box-shadow: 0px 0px 4px 2px #0000002b;
-    }
-    
-    .fans-tag {
-        float: left;
-        margin: 4px 4px 4px 4px;
-        border: solid 1px #6a99de;
-        border-radius: 2px;
-    }
-    
-    .fans-tag .tag-name {
-        border: none;
-        width: 18px;
-    }
-    
-    #import-area {
-        font-size: 10px;
-        margin: 10px 0 0 0;
-        max-width: 244px;
-        min-width: 244px;
-        height: 22px;
-        min-height: 20px;
-        max-height: 20px;
-        background-color: #f3f3f3;
-        border-radius: 5px;
-    }
-    
-    #import-area:focus {
-        outline: none;
-    }
-    
-    .topnav {
-        top: 8px;
-        left: 5px;
-        height: 20px;
-        line-height: 20px;
-        position: absolute;
-        color: #8e8e8e;
-        background-color: #ddddd98c;
-        border-radius: 4px;
-        cursor: default;
-    }
-    
-    .topnav-active {
-        color: #dd7a7a;
-        background-color: #ffffff;
-        border-radius: 4px;
-        height: 16px;
-        line-height: 16px;
-        box-shadow: 0 0 3px 1px #3f3d3d80;
-    }
-    
-    .topnav-option {
-        display: inline-block;
-        font-size: 12px;
-        font-weight: bold;
-        padding: 0 5px 0 5px;
-    }
-    
-    .topnav-option:nth-child(2) {
-        margin: 0 38px 0 38px;
-    }
-    #dynamic-like svg{
-        width: 25px;
-        height: 25px;
-        margin: 0 0 0 25px;
-    }
-    #dynamic-like:hover svg path{
-        fill: #19aada;
-    }
+(function () {
+    "use surict";
+    const ApiUrl = {
+        blog: 'https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?&host_mid=',
+        concerns: 'https://api.bilibili.com/x/relation/followings?vmid=',
+        medal: 'https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id='
+    };
+    const is_new = document.getElementsByClassName('item goback').length != 0;
+    const childTagReg = new RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
+    const tagReg = new RegExp(/[\n\r"'{}、]/);
+    const Style_tagName = document.createElement('style');
+    const Style_tagSize = document.createElement('style');
+    const Style_tagPlace = document.createElement('style');
+    const Style_script = document.createElement('style');
+    const Html_script = document.createElement('div');
+    const tagSizeDict = {
+        small: `.tag-class,.tag-name{height: 12px;line-height: 12px;}.tag-font{transform: scale(0.5) translate(-50%, -50%);}`,
+        middle: `.tag-class,.tag-name{height: 16px;line-height: 16px;}.tag-font{transform: scale(0.6) translate(-40%, -30%);}`
+    };
+    const tagHideDict = {
+        true: `.tag-class {display:none;}`,
+        false: `.tag-class {display:block;}`
+    };
+    const tagPlaceDict = {
+        middle: `.userTag {display: inline-block;position: relative;text-align: center;border-width: 0px;vertical-align: text-top; margin-left: 4px;cursor: default;}`,
+        sub: `.userTag {display: inline-block;position: relative;text-align: center;border-width: 0px;vertical-align: sub; margin-left: 4px;cursor: default;}`
+    };
+    Style_tagSize.innerHTML = tagSizeDict.middle;
+    Style_tagName.innerHTML = tagHideDict.false;
+    Style_tagPlace.innerHTML = tagPlaceDict.middle;
+    Style_script.innerHTML = `
+        .tag-name{border-color:rgba(169,195,233,0.1803921568627451);color:rgba(87,127,184,1);background-color:#9ebae833;float:left;text-align:center;border-width:0.5px;border-style:solid;border-bottom-left-radius:1px;border-top-left-radius:1px}.tag-class{position:relative;border-bottom-right-radius:1px;border-top-right-radius:1px;float:left;box-sizing:content-box;text-align:center;border-width:0.5px;border-color:#f25d8e;border-style:solid;border-bottom-left-radius:1px;border-top-left-radius:1px;color:#f25d8e}.tag-font{width:200%;height:200%;font-weight:400;transform-origin:center;font-size:20px;line-height:24px}.script-hide{position:fixed;right:10px;bottom:10px;width:20px;height:20px;font-size:15px;line-height:20px;text-align:center;color:#009688;background-color:#e2e1e2b3;border-radius:5px;box-shadow:2px 0px 4px 0px #0000002b}
+        .script-hide svg{width:100%;height:100%}.script-hide:hover{background-color:#76cb9dc9;box-shadow:2px 0px 4px 0px #76cb9d91}.script-hide:hover svg path{fill:#ffffff}.script-like{display:none;position:fixed;right:10px;bottom:40px;width:20px;height:20px;font-size:15px;line-height:26px;text-align:center;color:#009688;background-color:#e2e1e2b3;border-radius:5px;box-shadow:2px 0px 4px 0px #0000002b}.script-like:hover{background-color:#76cb9dc9;box-shadow:2px 0px 4px 0px #76cb9d91}.script-like svg{width:80%;height:80%;margin-left:1px}.script-like:hover svg path{fill:#ffffff}.tagbar-active{background-color:#ab85d1c9;box-shadow:2px 0px 4px 0px #c893e291}.tagbar-active svg path{fill:#ffffff}
+        .script-main{display:none;position:fixed;z-index:999;right:65px;bottom:20px;background-color:#ffffff;color:#929292;height:300px;width:250px;border-radius:4px;box-shadow:0px 0px 4px 2px #0000002b;padding:10px}.tag-bar{width:250px;height:90%;margin-top:30px}.comment-bar{display:none;width:250px;margin-top:30px;height:90%}.setting-bar{display:none;width:250px;margin-top:30px}svg.icon{width:10px;height:10px}.tagbar-action{position:absolute;top:2px;width:15px;height:15px;line-height:15px;margin:0;border-radius:50%;background-color:#fff0;text-align:center;font-size:small;color:#929292}.script-main input[type="checkbox"],input[type="radio"]{appearance:auto}
+        .tagbar-btn{background-color:#ffffff;color:#929292;height:20px;margin:5px 0px 5px 0;padding:0 4px 0 4px;border:none;border-radius:4px;font-weight:bold;transform-origin:center;transform:scale(0.9) translate(-10%,-10%);font-size:13px;text-align:center;box-shadow:#b1b1b13d 0px 0px 3px 2px}.tagbar-btn:hover{color:#37a279ab}.tagbar-btn:active{color:#b4b6ee}.input-tag{margin-bottom:4px;width:74%;left:20%;border-radius:4px;border:solid 1px #b0b0b0}.input-tag:focus{outline:none;background-color:#d5d5d559}.tagbar-label{font-size:12px;display:inline-block;margin-right:10px}#input-tagcolor{width:52px;height:20px;border-radius:4px;border:solid 1px #b0b0b0}
+        .tags{display:inline-block;width:40px;height:20px;font-size:12px;border-radius:5px;color:#49414b;text-align:center;transform-origin:center;transform:scale(0.9) translate(-10%,-10%);line-height:20px;background-color:#ededed;margin-left:5px;margin-top:5px;cursor:pointer;box-shadow:0px 1px 5px 0 #00000033}.tags:hover{background-color:#ced1d2c4}.delete-tag{position:relative;top:-3px;right:0;width:20px;height:20px;border-radius:50%;transform-origin:center;transform:scale(0.6) translate(-50%,-50%);font-size:20px;color:#837171;line-height:18px;background-color:#b2bfc67a;box-shadow:0px 0px 3px 1px #00000033}.delete-tag:hover{color:white;background-color:crimson}.delete-tag:active{color:white;background-color:#f0f}.tag-info{position:relative;margin-top:-20px;font-weight:bold}
+        #refresh-time{width:80px;height:5px;outline:none;margin:0 10px 0 25px;appearance:none;background:#b6b2b8;border-radius:4px}#refresh-time::-webkit-slider-thumb{-webkit-appearance:none;-moz-appearance:none;appearance:none;box-shadow:0 0 2px;width:10px;height:10px;border-radius:50%;background-size:cover;background-color:#fff}.tagbar-taglist{margin-top:2px;width:97%;height:51%;bottom:0px;border-radius:4px;background-color:rgb(243,238,233);overflow-y:auto;padding:4px}.tagbar-commentlist{margin-top:35px;width:97%;height:75.5%;bottom:0px;border-radius:4px;background-color:rgb(243,238,233);overflow-y:auto;padding:4px}.tagbar-taglist::-webkit-scrollbar,.tagbar-commentlist::-webkit-scrollbar,.medal-table::-webkit-scrollbar,#import-area::-webkit-scrollbar{width:4px;height:4px}
+        .tagbar-taglist::-webkit-scrollbar-thumb,.tagbar-commentlist::-webkit-scrollbar-thumb,.medal-table::-webkit-scrollbar-thumb,#import-area::-webkit-scrollbar-thumb{border-radius:5px;box-shadow:inset 0 0 5px rgba(0,0,0,0.2);background:rgba(0,0,0,0.2)}.tagbar-taglist::-webkit-scrollbar-track,.tagbar-commentlist::-webkit-scrollbar-track,.medal-table::-webkit-scrollbar-track{box-shadow:inset 0 0 5px rgba(0,0,0,0.2);border-radius:0px;background:rgba(0,0,0,0.1)}#flash-time{margin-right:10px}.tagSize{margin:5px 0 5px 0}.tagSize-label{display:inline-block;text-align:center}.tagSize-radio{vertical-align:text-bottom}.set-label{font-size:12px;display:inline-block;margin:5px 0 5px 0}.medalTag{margin-left:5px;cursor:pointer}
+        .medal-table{display:none;position:absolute;padding:5px;max-width:230px;max-height:160px;overflow-y:auto;font-size:12px;background-color:#fffefd;border-radius:5px;cursor:default;z-index:2;box-shadow:0px 0px 4px 2px #0000002b}.fans-tag{float:left;margin:4px 4px 4px 4px;border:solid 1px #6a99de;border-radius:2px}.fans-tag .tag-name{border:none;width:18px}#import-area{font-size:10px;margin:10px 0 0 0;max-width:244px;min-width:244px;height:22px;min-height:20px;max-height:20px;background-color:#f3f3f3;border-radius:5px}#import-area:focus{outline:none}.topnav{top:8px;left:5px;height:20px;line-height:20px;position:absolute;color:#8e8e8e;background-color:#ddddd98c;border-radius:4px;cursor:default}.topnav-active{color:#dd7a7a;background-color:#ffffff;border-radius:4px;height:16px;line-height:16px;box-shadow:0 0 3px 1px #3f3d3d80}
+        .topnav-option{display:inline-block;font-size:12px;font-weight:bold;padding:0 5px 0 5px}.topnav-option:nth-child(2){margin:0 38px 0 38px}#dynamic-like svg{width:25px;height:25px;margin:0 0 0 25px}#dynamic-like:hover svg path{fill:#19aada}
     `;
-        Html_script.innerHTML = `
+    Html_script.innerHTML = `
     <div class='script-like'>
         <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
             <path d="M857.28 344.992h-264.832c12.576-44.256 18.944-83.584 18.944-118.208 0-78.56-71.808-153.792-140.544-143.808-60.608 8.8-89.536 59.904-89.536 125.536v59.296c0 76.064-58.208 140.928-132.224 148.064l-117.728-0.192A67.36 67.36 0 0 0 64 483.04V872c0 37.216 30.144 67.36 67.36 67.36h652.192a102.72 102.72 0 0 0 100.928-83.584l73.728-388.96a102.72 102.72 0 0 0-100.928-121.824zM128 872V483.04c0-1.856 1.504-3.36 3.36-3.36H208v395.68H131.36A3.36 3.36 0 0 1 128 872z m767.328-417.088l-73.728 388.96a38.72 38.72 0 0 1-38.048 31.488H272V476.864a213.312 213.312 0 0 0 173.312-209.088V208.512c0-37.568 12.064-58.912 34.72-62.176 27.04-3.936 67.36 38.336 67.36 80.48 0 37.312-9.504 84-28.864 139.712a32 32 0 0 0 30.24 42.496h308.512a38.72 38.72 0 0 1 38.048 45.888z" fill="#459cdd"></path>
@@ -533,87 +102,88 @@
             <div class="tagbar-commentlist"></div>
         </div>
     </div>`;
-        const Head = document.head || document.querySelector('head');
-        const Body = document.body || document.querySelector('body');
-        Head.appendChild(Style_tagName);
-        Head.appendChild(Style_script);
-        Head.appendChild(Style_tagSize);
-        Head.appendChild(Style_tagPlace);
-        Body.appendChild(Html_script);
-        const scriptHide = document.querySelector('.script-hide');
-        const scriptMain = document.querySelector('.script-main');
-        const topNav = document.querySelectorAll('.topnav-option');
-        const scriptBar = document.querySelectorAll('.scriptBar');
-        let tagname_hide = document.querySelector('#tagname-hide');
-        let tag_merge = document.querySelector('#tag-merge');
-        let detect_concerns = document.querySelector('#detect-concerns');
-        let detect_medal = document.querySelector('#detect-medal');
-        let link_delete = document.querySelector('#link-delete');
-        let close_comment = document.querySelector('#close-comment');
-        let tagSize_radio = document.querySelectorAll('.tagSize-radio');
-        let import_tag = document.querySelector('#import-tag');
-        let import_area = document.querySelector('#import-area');
-        let tag_name = document.querySelector('#input-tagname');
-        let tag_text = document.querySelector('#input-tagtext');
-        let tag_reg = document.querySelector('#input-tagreg');
-        let tag_color = document.querySelector('#input-tagcolor');
-        let add_tag_btn = document.querySelector('#add-tag');
-        let export_tag = document.querySelector('#export-tag');
-        let taglist = document.querySelector('.tagbar-taglist');
-        let tag_hide = document.querySelector('#tag-hide');
-        let refresh_time = document.querySelector("#refresh-time");
-        let add_tag_reg = document.querySelector('#add-comment-reg');
-        let comment_reg = document.querySelector('#input-comment-reg');
-        let commentlist = document.querySelector('.tagbar-commentlist');
-        let dynamic_btn = document.querySelector('#dynamic-btn');
-        let script_like = document.querySelector('.script-like');
-        scriptHide.onclick = () => {
-            if (scriptMain.style.display === 'block') {
-                scriptMain.style.display = 'none';
-                scriptHide.classList.remove('tagbar-active');
-            } else {
-                scriptMain.style.display = 'block';
-                scriptHide.classList.add('tagbar-active');
-            }
+    const Head = document.head || document.querySelector('head');
+    const Body = document.body || document.querySelector('body');
+    Head.appendChild(Style_tagName);
+    Head.appendChild(Style_script);
+    Head.appendChild(Style_tagSize);
+    Head.appendChild(Style_tagPlace);
+    Body.appendChild(Html_script);
+    const scriptHide = document.querySelector('.script-hide');
+    const scriptMain = document.querySelector('.script-main');
+    const topNav = document.querySelectorAll('.topnav-option');
+    const scriptBar = document.querySelectorAll('.scriptBar');
+    let tagname_hide = document.querySelector('#tagname-hide');
+    let tag_merge = document.querySelector('#tag-merge');
+    let detect_concerns = document.querySelector('#detect-concerns');
+    let detect_medal = document.querySelector('#detect-medal');
+    let link_delete = document.querySelector('#link-delete');
+    let close_comment = document.querySelector('#close-comment');
+    let tagSize_radio = document.querySelectorAll('.tagSize-radio');
+    let import_tag = document.querySelector('#import-tag');
+    let import_area = document.querySelector('#import-area');
+    let tag_name = document.querySelector('#input-tagname');
+    let tag_text = document.querySelector('#input-tagtext');
+    let tag_reg = document.querySelector('#input-tagreg');
+    let tag_color = document.querySelector('#input-tagcolor');
+    let add_tag_btn = document.querySelector('#add-tag');
+    let export_tag = document.querySelector('#export-tag');
+    let taglist = document.querySelector('.tagbar-taglist');
+    let tag_hide = document.querySelector('#tag-hide');
+    let refresh_time = document.querySelector("#refresh-time");
+    let add_tag_reg = document.querySelector('#add-comment-reg');
+    let comment_reg = document.querySelector('#input-comment-reg');
+    let commentlist = document.querySelector('.tagbar-commentlist');
+    let dynamic_btn = document.querySelector('#dynamic-btn');
+    let script_like = document.querySelector('.script-like');
+    scriptHide.onclick = () => {
+        if (scriptMain.style.display === 'block') {
+            scriptMain.style.display = 'none';
+            scriptHide.classList.remove('tagbar-active');
+        } else {
+            scriptMain.style.display = 'block';
+            scriptHide.classList.add('tagbar-active');
+        }
+    };
+    topNav.forEach(btn => {
+        btn.onclick = function () {
+            topNav.forEach(i => {
+                i.classList.remove('topnav-active');
+            });
+            this.classList.add('topnav-active');
+            scriptBar.forEach(i => {
+                i.style.display = 'none';
+            });
+            document.querySelector('.' + this.getAttribute('id').replace('btn', 'bar')).style.display = 'block';
         };
-        topNav.forEach(btn => {
-            btn.onclick = function() {
-                topNav.forEach(i => {
-                    i.classList.remove('topnav-active');
-                });
-                this.classList.add('topnav-active');
-                scriptBar.forEach(i => {
-                    i.style.display = 'none';
-                });
-                document.querySelector('.' + this.getAttribute('id').replace('btn', 'bar')).style.display = 'block';
-            };
-        });
-        dynamic_btn.onclick = () => {
-            script_like.style.display = dynamic_btn.checked ? 'block' : 'none';
-            GM_setValue('DynamicLike', dynamic_btn.checked);
-        };
-        script_like.onclick = dynamic_click;
-        const TagNameHide = () => {
-            Style_tagName.innerHTML = tagHideDict[String(tagname_hide.checked)];
-            GM_setValue('TagNameHide', tagname_hide.checked);
-        };
-        tagname_hide.onclick = TagNameHide;
-        detect_concerns.onclick = () => {
-            tag_list.detectConcerns = detect_concerns.checked;
-            GM_setValue('DetectConcerns', detect_concerns.checked);
-        };
-        detect_medal.onclick = () => {
-            tag_list.detectMedal = detect_medal.checked;
-            GM_setValue('DetectMedal', detect_medal.checked);
-        };
-        tag_merge.onclick = () => {
-            tagMerge = tag_merge.checked;
-            GM_setValue('TagMerge', tagMerge);
-        };
-        link_delete.onclick = () => { GM_setValue('NoJump', link_delete.checked); };
-        close_comment.onclick = () => { GM_setValue('CloseComment', close_comment.checked); };
-        add_tag_btn.onclick = () => {
-            if (tag_name.value && tag_text.value && tag_reg.value) {
+    });
+    dynamic_btn.onclick = () => {
+        script_like.style.display = dynamic_btn.checked ? 'block' : 'none';
+        GM_setValue('DynamicLike', dynamic_btn.checked);
+    };
+    script_like.onclick = dynamic_click;
+    const TagNameHide = () => {
+        Style_tagName.innerHTML = tagHideDict[String(tagname_hide.checked)];
+        GM_setValue('TagNameHide', tagname_hide.checked);
+    };
+    tagname_hide.onclick = TagNameHide;
+    detect_concerns.onclick = () => {
+        tag_list.detectConcerns = detect_concerns.checked;
+        GM_setValue('DetectConcerns', detect_concerns.checked);
+    };
+    detect_medal.onclick = () => {
+        tag_list.detectMedal = detect_medal.checked;
+        GM_setValue('DetectMedal', detect_medal.checked);
+    };
+    tag_merge.onclick = () => {
+        tagMerge = tag_merge.checked;
+        GM_setValue('TagMerge', tagMerge);
+    };
+    link_delete.onclick = () => { GM_setValue('NoJump', link_delete.checked); };
+    close_comment.onclick = () => { GM_setValue('CloseComment', close_comment.checked); };
+    add_tag_btn.onclick = () => {
+        if (tag_name.value && tag_text.value && tag_reg.value) {
+            if (!tagReg.test(tag_reg.value)) {
                 addTag({
                     tag: tag_name.value,
                     text: tag_text.value,
@@ -626,175 +196,183 @@
                 tag_reg.value = '';
                 tag_hide.checked = false;
             } else {
-                alert('请将标签信息补充完整');
+                alert(`标签规则不应该包含‘ “ 、" ' { } \\n \\r等字符`);
             }
-        };
-        export_tag.onclick = () => {
-            let exportData = {};
-            let key_storage = GM_listValues();
-            key_storage.forEach(i => {
-                exportData[i] = GM_getValue(i, null);
-            });
-            GM_setClipboard(JSON.stringify(exportData));
-            alert('已导出标签数据到剪切板！');
-        };
-        import_tag.onclick = () => {
-            if (import_area.value) {
-                try {
-                    let importData = JSON.parse(import_area.value);
-                    Object.keys(importData).forEach(i => {
-                        GM_setValue(i, importData[i]);
-                    });
-                } catch (e) {
-                    alert('导入配置出错，请检查配置项');
-                    return;
-                }
-                import_area.value = '';
-                ConfigInit();
-            } else {
-                alert('配置为空！请先在输入框粘贴配置并检查无误后点击【导入配置】');
+        } else {
+            alert('请将标签信息补充完整');
+        }
+    };
+    export_tag.onclick = () => {
+        let exportData = {};
+        let key_storage = GM_listValues();
+        key_storage.forEach(i => {
+            exportData[i] = GM_getValue(i, null);
+        });
+        GM_setClipboard(JSON.stringify(exportData));
+        alert('已导出标签数据到剪切板！');
+    };
+    import_tag.onclick = () => {
+        if (import_area.value) {
+            try {
+                let importData = JSON.parse(import_area.value);
+                Object.keys(importData).forEach(i => {
+                    GM_setValue(i, importData[i]);
+                });
+            } catch (e) {
+                alert('导入配置出错，请检查配置项');
+                return;
             }
-        };
-        refresh_time.onchange = () => {
-            refreshTime = Number(refresh_time.value) * 1000;
-            GM_setValue('RefreshTime', refreshTime);
-            document.querySelector("#show-time").innerText = refresh_time.value + 's';
-        };
-        const getTagSize = () => {
-            for (let radio of tagSize_radio) {
-                if (radio.checked) {
-                    Style_tagSize.innerHTML = tagSizeDict[radio.value];
-                    tagSize = radio.value;
-                    GM_setValue('TagSize', tagSize);
-                }
+            import_area.value = '';
+            ConfigInit();
+        } else {
+            alert('配置为空！请先在输入框粘贴配置并检查无误后点击【导入配置】');
+        }
+    };
+    refresh_time.onchange = () => {
+        refreshTime = Number(refresh_time.value) * 1000;
+        GM_setValue('RefreshTime', refreshTime);
+        document.querySelector("#show-time").innerText = refresh_time.value + 's';
+    };
+    const getTagSize = () => {
+        for (let radio of tagSize_radio) {
+            if (radio.checked) {
+                Style_tagSize.innerHTML = tagSizeDict[radio.value];
+                tagSize = radio.value;
+                GM_setValue('TagSize', tagSize);
             }
-        };
-        tagSize_radio.forEach(radio => { radio.onclick = getTagSize; });
-        add_tag_reg.onclick = () => {
-            if (comment_reg.value) {
-                addKeyWord(comment_reg.value);
-                comment_reg.value = '';
-            } else {
-                alert('请将关键词正则信息补充完整');
-            };
-        };
-        const addKeyWord = (reg_text) => {
-            if (!keyword.includes(reg_text)) {
-                let new_tag = insertTag(commentlist, reg_text);
-                let keyword_index = Object.keys(comment_keyword).length;
-                comment_keyword[keyword_index] = reg_text;
-                keyword.push(reg_text);
-                GM_setValue('Keyword', keyword);
-                let deleteTag = () => {
-                    commentlist.removeChild(new_tag);
-                    delete comment_keyword[keyword_index];
-                    keyword = [];
-                    let keyword_index_new = Object.keys(comment_keyword);
-                    keyword_index_new.map(key => keyword.push(comment_keyword[key]));
-                    GM_setValue('Keyword', keyword);
-                };
-                new_tag.children[0].onclick = deleteTag;
-                new_tag.children[1].ondblclick = () => {
-                    comment_reg.value = reg_text;
-                    deleteTag();
-                };
-            }
-        };
-        const addTag = (tag_dic) => {
-            let title = `${tag_dic.tag}&#10;规则：${tag_dic.reg}&#10;隐藏评论：${tag_dic.hide}`;
-            let new_tag = insertTag(taglist, tag_dic);
-            let tag_index = Object.keys(tag).length;
-            tag[tag_index] = tag_dic;
-            tag_list.push(tag, tag_index);
+        }
+    };
+    tagSize_radio.forEach(radio => { radio.onclick = getTagSize; });
+    add_tag_reg.onclick = () => {
+        if (comment_reg.value) {
+            addKeyWord(comment_reg.value);
+            comment_reg.value = '';
+        } else {
+            alert('请将关键词正则信息补充完整');
+        }
+    };
+    const addKeyWord = (reg_text) => {
+        if (!keyword.includes(reg_text)) {
+            let new_tag = insertTag(commentlist, reg_text);
+            let keyword_index = Object.keys(comment_keyword).length;
+            comment_keyword[keyword_index] = reg_text;
+            keyword.push(reg_text);
+            GM_setValue('Keyword', keyword);
             let deleteTag = () => {
-                taglist.removeChild(new_tag);
-                delete tag[tag_index];
-                let tag1 = Object.assign({}, tag);
-                tag = {};
-                Object.values(tag1).forEach((value, i) => { tag[i] = value; });
-                tag_list.pop(tag);
+                commentlist.removeChild(new_tag);
+                delete comment_keyword[keyword_index];
+                keyword = [];
+                let keyword_index_new = Object.keys(comment_keyword);
+                keyword_index_new.map(key => keyword.push(comment_keyword[key]));
+                GM_setValue('Keyword', keyword);
             };
             new_tag.children[0].onclick = deleteTag;
             new_tag.children[1].ondblclick = () => {
-                tag_name.value = tag_dic.tag;
-                tag_text.value = tag_dic.text;
-                tag_reg.value = tag_dic.reg;
-                tag_color.value = tag_dic.color;
-                tag_hide.checked = tag_dic.hide;
+                comment_reg.value = reg_text;
                 deleteTag();
             };
+        }
+    };
+    const addTag = (tag_dic) => {
+        let new_tag = insertTag(taglist, tag_dic);
+        let tag_index = Object.keys(tag).length;
+        tag[tag_index] = tag_dic;
+        tag_list.push(tag, tag_index);
+        let deleteTag = () => {
+            taglist.removeChild(new_tag);
+            delete tag[tag_index];
+            let tag1 = { ...tag };
+            tag = {};
+            Object.values(tag1).forEach((value, i) => { tag[i] = value; });
+            tag_list.pop(tag);
         };
-        const insertTag = (parentNode, dic) => {
-            let new_tag = document.createElement('div');
-            let title = '';
+        new_tag.children[0].onclick = deleteTag;
+        new_tag.children[1].ondblclick = () => {
+            tag_name.value = tag_dic.tag;
+            tag_text.value = tag_dic.text;
+            tag_reg.value = tag_dic.reg;
+            tag_color.value = tag_dic.color;
+            tag_hide.checked = tag_dic.hide;
+            deleteTag();
+        };
+    };
+    const insertTag = (parentNode, dic) => {
+        let new_tag = document.createElement('div');
+        let title = '';
+        let text = '';
+        let color = '';
+        if (dic.text) {
             if (childTagReg.test(dic.reg)) {
                 new_tag.style.border = 'solid 1px #4fc3f7';
                 title = `分类：${dic.tag} （合并标签）&#10;子标签：${dic.reg}&#10;隐藏评论：${dic.hide}`;
             } else {
                 title = `分类：${dic.tag}&#10;规则：${dic.reg}&#10;隐藏评论：${dic.hide}`;
             }
-            new_tag.innerHTML = `<div class="delete-tag">x</div><p class="tag-info" title="${title}">${dic.text}</p>`;
-            new_tag.classList.add('tags');
-            new_tag.style.width = measureTextWidth("12px", dic.text) + 8 + 'px';
-            new_tag.style.color = dic.color;
-            parentNode.appendChild(new_tag);
-            return new_tag;
-        };
-        const measureTextWidth = (fontSize, text) => {
-            let fontFamily = "PingFang SC, HarmonyOS_Regular, Helvetica Neue, Microsoft YaHei, sans-serif";
-            let canvas = document.createElement("canvas");
-            let context = canvas.getContext("2d");
-            context.font = fontSize + " " + fontFamily;
-            let result = context.measureText(text);
-            return Math.ceil(result.width);
-        };
-        class Tag {
-            constructor(tag_dic) {
-                this.tag = tag_dic.tag;
-                this.child_tag = [];
-                this.tag_class = this.Str2Hex(this.tag, 'class');
-                this.text = tag_dic.text;
-                this.tag_id = this.Str2Hex(this.text, 'id');
-                this.reg = Tag.MultiReg(tag_dic.reg);
-                this.hide = tag_dic.hide;
-                this.color = tag_dic.color;
-                this.tag_size = tagSize === 'middle' ? '15px' : '12px';
-                this.tag_width = measureTextWidth(this.tag_size, this.tag);
-                this.width = measureTextWidth(this.tag_size, this.text);
-                this.list = new Set();
-                this.nolist = new Set();
-                this.ChildTag(tag_dic);
-                this.tag_inner = `<div class='tag-name' style='color: ${this.color}; width:${this.width}px;'><div class='tag-font'>${this.text}</div></div>`;
-                this.inner = `<div class='userTag ${this.tag_class} ${this.tag_id}' title="${this.child_tag.join(' ')}"><div class='tag-class' style='border-color:#8da8e8;color:#5e80c4; width:${this.tag_width}px'><div class='tag-font'>${this.tag}</div></div>${this.tag_inner}</div>`;
+            text = dic.text;
+            color = dic.color;
+        } else {
+            text = dic;
+            color = '#000';
+        }
+        new_tag.innerHTML = `<div class="delete-tag">x</div><p class="tag-info" title="${title}">${text}</p>`;
+        new_tag.classList.add('tags');
+        new_tag.style.width = measureTextWidth("12px", text) + 8 + 'px';
+        new_tag.style.color = color;
+        parentNode.appendChild(new_tag);
+        return new_tag;
+    };
+    const measureTextWidth = (fontSize, text) => {
+        let fontFamily = "PingFang SC, HarmonyOS_Regular, Helvetica Neue, Microsoft YaHei, sans-serif";
+        let canvas = document.createElement("canvas");
+        let context = canvas.getContext("2d");
+        context.font = fontSize + " " + fontFamily;
+        let result = context.measureText(text);
+        return Math.ceil(result.width);
+    };
+    class Tag {
+        constructor(tag_dic) {
+            this.tag = tag_dic.tag;
+            this.child_tag = [];
+            this.tag_class = this.Str2Hex(this.tag, 'class');
+            this.text = tag_dic.text;
+            this.tag_id = this.Str2Hex(this.text, 'id');
+            this.reg = Tag.MultiReg(tag_dic.reg);
+            this.hide = tag_dic.hide;
+            this.tag_size = tagSize === 'middle' ? '15px' : '12px';
+            this.tag_width = measureTextWidth(this.tag_size, this.tag);
+            this.width = measureTextWidth(this.tag_size, this.text);
+            this.list = new Set();
+            this.nolist = new Set();
+            this.ChildTag(tag_dic);
+            this.tag_inner = `<div class='tag-name' style='color: ${tag_dic.color}; width:${this.width}px;'><div class='tag-font'>${this.text}</div></div>`;
+            this.inner = `<div class='userTag ${this.tag_class} ${this.tag_id}' title="${this.child_tag.join(' ')}"><div class='tag-class' style='border-color:#8da8e8;color:#5e80c4; width:${this.tag_width}px'><div class='tag-font'>${this.tag}</div></div>${this.tag_inner}</div>`;
+        }
+        ChildTag(tag_dic) {
+            if (childTagReg.test(tag_dic.reg)) {
+                this.child_tag = tag_dic.reg.match(/(?<=\[)(.*?)(?=\])/g);
+                let regs = [];
+                tag_list.list.filter(i => { if (this.child_tag.includes(i.text)) {
+                    return i;
+                } }).forEach(e => {
+                    let new_reg = String(e.reg).match(/\((.*?)\){1,2}/g);
+                    if (new_reg) {
+                        regs.splice(0, 0, ...new_reg);
+                    } else {
+                        regs.push(`(?=.*(${String(e.reg).replace(/\//g, '')}))`);
+                    }
+                });
+                this.reg = new RegExp(`^${regs.join('')}.*`);
             }
-            ChildTag(tag_dic) {
-                if (childTagReg.test(tag_dic.reg)) {
-                    this.child_tag = tag_dic.reg.match(/(?<=\[)(.*?)(?=\])/g);
-                    let regs = [];
-                    tag_list.list.filter(i => {
-                        if (this.child_tag.includes(i.text)) {
-                            return i;
-                        }
-                    }).forEach(e => {
-                        let new_reg = String(e.reg).match(/\((.*?)\){1,2}/g);
-                        if (new_reg) {
-                            regs.splice(0, 0, ...new_reg);
-                        } else {
-                            regs.push(`(?=.*(${String(e.reg).replace(/\//g, '')}))`);
-                        }
-                    });
-                    this.reg = new RegExp(`^${regs.join('')}.*`);
-                }
+        }
+        Str2Hex(str, state) {
+            let hex = '';
+            for (let i = 0; i < str.length; i++) {
+                hex += str.charCodeAt(i).toString(16);
             }
-            Str2Hex(str, state) {
-                let hex = '';
-                for (let i = 0; i < str.length; i++) {
-                    hex += str.charCodeAt(i).toString(16);
-                }
-                return 'tag-' + state + '-' + hex;
-            }
-            static MultiReg(query) {
-                    let regStr = query.indexOf('&') !== -1 ? `^${query.split('&').map(q => `(?=.*${q})`).join('')}.*` : query;
+            return 'tag-' + state + '-' + hex;
+        }
+        static MultiReg(query) {
+            let regStr = query.indexOf('&') !== -1 ? `^${query.split('&').map(q => `(?=.*${q})`).join('')}.*` : query;
             return new RegExp(regStr);
         }
         check(pid, c) {
@@ -805,8 +383,7 @@
                 if (!c.querySelector('.' + this.tag_id)) {
                     if (c.querySelector('.' + this.tag_class) && tagMerge) {
                         c.querySelector('.' + this.tag_class).innerHTML += this.tag_inner;
-                    }
-                    else {
+                    } else {
                         c.innerHTML += this.inner;
                     }
                 }
@@ -820,15 +397,13 @@
                 if (!c.querySelector('.' + this.tag_id) && !this.list.has(pid) && !this.nolist.has(pid)) {
                     if (c.querySelector('.' + this.tag_class) && tagMerge) {
                         c.querySelector('.' + this.tag_class).innerHTML += this.tag_inner;
-                    }
-                    else {
+                    } else {
                         c.innerHTML += this.inner;
                     }
                 }
                 this.combine(pid, c);
                 this.list.add(pid);
-            }
-            else {
+            } else {
                 this.nolist.add(pid);
             }
         }
@@ -885,19 +460,16 @@
         }
         detect(pid, c) {
             let p = [];
-            const p1 = (resolve) => { Requests(ApiUrl.blog + pid, (data) => { resolve(data); }); };
-            const p2 = (resolve) => { Requests(ApiUrl.medal + pid, (data) => { resolve(data); }); };
-            const p3 = (resolve) => { Requests(ApiUrl.concerns + pid + '&pn=1&ps=50', (data) => { resolve(data); }); };
+            const p1 = (resolve) => { Requests(ApiUrl.blog + pid, (data) => { resolve(data); }, 'blog'); };
+            const p2 = (resolve) => { Requests(ApiUrl.medal + pid, (data) => { resolve(data); }, 'medal'); };
+            const p3 = (resolve) => { Requests(ApiUrl.concerns + pid + '&pn=1&ps=50', (data) => { resolve(data); }, 'concerns'); };
             if (this.detectConcerns && this.detectMedal) {
                 p = [p1, p2, p3];
-            }
-            else if (this.detectConcerns && !this.detectMedal) {
+            } else if (this.detectConcerns && !this.detectMedal) {
                 p = [p1, p3];
-            }
-            else if (!this.detectConcerns && this.detectMedal) {
+            } else if (!this.detectConcerns && this.detectMedal) {
                 p = [p1, p2];
-            }
-            else {
+            } else {
                 p = [p1];
             }
             Promise.all(p.map(i => new Promise(i))).then((result) => {
@@ -994,7 +566,7 @@
             noJump();
         }
     };
-    const Requests = (requestUrl, func) => {
+    const Requests = (requestUrl, func, state) => {
         GM_xmlhttpRequest({
             method: "get",
             url: requestUrl,
@@ -1004,10 +576,32 @@
             },
             onload: function (res) {
                 if (res.status === 200) {
-                    let data = JSON.stringify(JSON.parse(res.response).data);
+                    let data;
+                    if (state === 'blog') {
+                        let data_list = [];
+                        let data_json = JSON.parse(res.response)?.data?.items || [];
+                        if (data_json.length > 0) {
+                            data_json.map(i => {
+                                let zhuanf_text = i?.modules?.module_dynamic?.desc?.text || '';
+                                let origin_text = i?.orig?.modules?.module_dynamic?.desc?.text || '';
+                                if (zhuanf_text || origin_text) {
+                                    data_list.push({ 'text': zhuanf_text, 'orig_text': origin_text });
+                                }
+                            });
+                        }
+                        data = JSON.stringify(data_list);
+                    } else if (state === 'concerns') {
+                        let data_list = [];
+                        let data_json = JSON.parse(res.response)?.data?.list || [];
+                        if (data_json.length > 0) {
+                            data_json.map(i => { data_list.push(i?.uname); });
+                        }
+                        data = data_list.join(' ');
+                    } else {
+                        data = JSON.stringify(JSON.parse(res.response)?.data || []);
+                    }
                     func(data);
-                }
-                else {
+                } else {
                     console.log('加载用户信息失败');
                     console.log(res);
                 }
@@ -1017,16 +611,14 @@
     const getPid = (c) => {
         if (is_new) {
             return c.querySelector('.user-name,.sub-user-name').dataset.userId || c.querySelector('.name').dataset.usercardMid;
-        }
-        else {
+        } else {
             return c.querySelector('.name').getAttribute('data-usercard-mid') || c.children[0].href.replace(/[^\d]/g, "");
         }
     };
     const getCommentList = () => {
         if (is_new) {
             return document.querySelectorAll('.user-info,.sub-user-info') || document.querySelectorAll('.user');
-        }
-        else {
+        } else {
             return document.querySelectorAll('.user');
         }
     };
@@ -1035,16 +627,13 @@
         if (is_new) {
             if (c.classList.contains('user-info')) {
                 comment = c.nextSibling.children[0];
-            }
-            else {
+            } else {
                 comment = c.nextSibling;
             }
-        }
-        else {
+        } else {
             if (c.querySelector('.text-con')) {
                 comment = c.querySelector('.text-con');
-            }
-            else {
+            } else {
                 comment = c.nextSibling;
             }
         }
@@ -1167,15 +756,13 @@
         tag_list.detectMedal = false;
         link_delete.checked = false;
         link_delete.disabled = true;
-    }
-    else if (webType[1].test(local_href)) {
+    } else if (webType[1].test(local_href)) {
         close_comment.checked = false;
         close_comment.disabled = true;
         dynamic_btn.checked = false;
         script_like.style.display = 'none';
         dynamic_btn.disabled = true;
-    }
-    else {
+    } else {
         Style_tagPlace.innerHTML = tagPlaceDict.sub;
         detect_medal.checked = false;
         detect_medal.disabled = true;
@@ -1186,5 +773,4 @@
         script_like.style.display = 'none';
         dynamic_btn.disabled = true;
     }
-    console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
 })();
