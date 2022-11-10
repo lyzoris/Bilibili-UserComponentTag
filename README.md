@@ -1,7 +1,7 @@
 ## Bilibili【哔哩哔哩】 用户成分标签 ![bilibili](https://experiments.sparanoid.net/favicons/v2/www.bilibili.com.ico)
 
 #### 作者：Lyzoris
-#### 版本：2.2
+#### 版本：2.3.2
 #### 适用网页：Bilibili 视频页、个人动态页、用户空间页、番剧、电影等页面  
 #### 代码&ensp;&ensp;&ensp;&ensp;[**userTag.ts**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.ts)&ensp;&ensp;&ensp;&ensp;[**userTag.js**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.js)
 #### 油猴链接  &ensp;&ensp;&ensp;&ensp;[Bilibili【哔哩哔哩】 用户成分标签](https://greasyfork.org/zh-CN/scripts/451354)
