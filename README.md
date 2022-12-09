@@ -1,7 +1,7 @@
 ## Bilibili【哔哩哔哩】 用户成分标签 ![bilibili](https://experiments.sparanoid.net/favicons/v2/www.bilibili.com.ico)
 
 #### 作者：Lyzoris
-#### 版本：2.3.2
+#### 版本：2.5
 #### 适用网页：Bilibili 视频页、个人动态页、用户空间页、番剧、电影等页面  
 #### 代码&ensp;&ensp;&ensp;&ensp;[**userTag.ts**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.ts)&ensp;&ensp;&ensp;&ensp;[**userTag.js**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.js)
 #### 油猴链接  &ensp;&ensp;&ensp;&ensp;[Bilibili【哔哩哔哩】 用户成分标签](https://greasyfork.org/zh-CN/scripts/451354)
@@ -25,6 +25,9 @@
 #### 反馈   
 &ensp;&ensp;&ensp;&ensp;脚本没有预设标签，如有标签分享和交流需要，可在评论区分享标签；如有标签功能疑问，也请在评论区留言  
 &ensp;&ensp;&ensp;&ensp;脚本更新较慢，如有侵权、bug、任何功能上的意见和建议，请评论留言或私信，作者将尽早回复
+
+#### 使用的库
+&ensp;&ensp;&ensp;&ensp;[ElementGetter](https://greasyfork.org/zh-CN/scripts/448895-elementgetter%E5%BA%93) 
 
 #### 参考  
 &ensp;&ensp;&ensp;&ensp;[新·三相之力指示器](https://greasyfork.org/zh-CN/scripts/451150)&ensp;&ensp;&ensp;&ensp;[原神玩家指示器](https://greasyfork.org/zh-CN/scripts/450720)
@@ -106,17 +109,18 @@
 
 #### 标签大小
 - 较小 
-- 标准 网页文字标准大小
+- 标准 网页文字标准大小 （默认）
 
 #### 刷新间隔
 &ensp;&ensp;&ensp;&ensp;控制网页滚动时脚本检测刷新间隔时间（5-10s为宜）
 #### 标签设置
+- 手动检测标签 -- 点击“检测”按键检测标签，减少请求次数
 - 标签不显示分类 -- 隐藏标签分类，缩小标签长度
 - 同类型标签合并 -- 根据标签分类信息合并同类标签，缩小长度
 
 #### 实验性功能
 - 去除关键词跳转（视频页）
-- 动态添加收起评论（动态页）-- 在动态末尾出现绿色 收起评论 按键
+- 动态添加收起评论（动态页）-- 在动态末尾出现绿色 收起评论 按键 （待开发）
 - 动态页批量点赞（动态页）-- 打开后在展开面板按键上方出现点赞按键
 
 > ### 标签样式、面板操作示例
