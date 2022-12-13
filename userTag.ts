@@ -465,6 +465,22 @@
     .search-btn:active{
         color: #dd4438;
     }
+    .close-btn{
+        text-align: center; 
+        font-size: 14px; 
+        color: #99a2aa; 
+        border-top: 1px solid #e5e9ef; 
+        margin: 0; 
+        overflow: hidden; 
+        padding: 12px 0 10px; 
+        position: relative;
+    }
+    .close-btn a{
+        color: #99a2aa!important;
+    }
+    .close-btn a:hover{
+        color: #e132c2!important;
+    }
     `;
     Html_script.innerHTML = `
     <div class='script-like'>
@@ -509,10 +525,11 @@
                     <input class="tagSize-radio" type="radio" name="tagSize" value="middle" checked="true" style="margin-left: 10px;">
                 </div>
             </div>
-            <label class="set-label" for="search-tag" title="手动检测指定用户标签，减少请求次数&#10;开启后用户id后出现“检测"按键&#10;点击“检测”按键以检测该用户标签>手动检测标签<input type="checkbox" id="search-tag" style="margin-left:62px;height:11px"></label>
+            <label class="set-label" for="search-tag" title="手动检测指定用户标签，减少请求次数&#10;开启后用户id后出现”检测“按键&#10;点击“检测”按键以检测该用户标签">手动检测标签<input type="checkbox" id="search-tag" style="margin-left:62px;height:11px"></label>
             <label class="set-label" for="tagname-hide" title="不显示标签分类，建议开启&#10;出现标签样式错误时请开启此项">标签不显示分类<input type="checkbox" id="tagname-hide" style="margin-left:50px;height:11px"></label>
             <label class="set-label" for="tag-merge" title="相同类型标签合并，只显示一个标签分类&#10;可能影响标签样式，建议同时打开【标签不显示分类】">同类型标签合并<input type="checkbox" id="tag-merge" style="margin-left:50px;height:11px"></label>
             <label class="set-label" for="link-delete" title="去除 评论区评论关键词蓝色点击跳转">去除关键词跳转<input type="checkbox" id="link-delete" style="margin-left:50px;height:11px"></label>
+            <label class="set-label" for="close-comment" title="动态评论末尾添加【收起评论】按键">动态添加收起评论<input type="checkbox" id="close-comment" style="margin-left:38px;height:11px"></label>
             <label class="set-label" for="dynamic-btn" title="动态页面添加【批量点赞】按键">动态页批量点赞<input type="checkbox" id="dynamic-btn" style="margin-left:50px;height:11px"></label>
         </div>
         <div class="scriptBar tag-bar">
@@ -541,7 +558,7 @@
     const scriptMain    = document.querySelector('.script-main') as HTMLDivElement;
     const topNav        = document.querySelectorAll('.topnav-option') as NodeListOf<HTMLDivElement>;
     const scriptBar     = document.querySelectorAll('.scriptBar') as NodeListOf<HTMLDivElement>;
-    const input_tags    = document.querySelectorAll('.input-tag') as NodeListOf<HTMLInputElement>;
+    const inputTags     = document.querySelectorAll('.input-tag') as NodeListOf<HTMLInputElement>;
     let tagname_hide    = document.querySelector('#tagname-hide') as HTMLInputElement;
     let tag_merge       = document.querySelector('#tag-merge') as HTMLInputElement;
     let detect_repost   = document.querySelector('#detect-repost') as HTMLInputElement;
@@ -549,32 +566,33 @@
     let detect_medal    = document.querySelector('#detect-medal') as HTMLInputElement;
     let search_tag      = document.querySelector('#search-tag') as HTMLInputElement;
     let link_delete     = document.querySelector('#link-delete') as HTMLInputElement;
+    let close_comment   = document.querySelector('#close-comment') as HTMLInputElement;
     let tagSize_radio   = document.querySelectorAll('.tagSize-radio') as NodeListOf<HTMLInputElement>;
-    let import_tag      = document.querySelector('#import-tag') as HTMLInputElement;
     let import_area     = document.querySelector('#import-area') as HTMLInputElement;
     let tag_name        = document.querySelector('#input-tagname') as HTMLInputElement;
     let tag_text        = document.querySelector('#input-tagtext') as HTMLInputElement;
     let tag_reg         = document.querySelector('#input-tagreg') as HTMLInputElement;
     let tag_color       = document.querySelector('#input-tagcolor') as HTMLInputElement;
-    let add_tag_btn     = document.querySelector('#add-tag') as HTMLInputElement;
+    let add_tag         = document.querySelector('#add-tag') as HTMLInputElement;
+    let import_tag      = document.querySelector('#import-tag') as HTMLInputElement;
     let export_tag      = document.querySelector('#export-tag') as HTMLInputElement;
     let taglist         = document.querySelector('.tagbar-taglist') as HTMLDivElement;
     let tag_hide        = document.querySelector('#tag-hide') as HTMLInputElement;
-    let add_tag_reg     = document.querySelector('#add-comment-reg') as HTMLInputElement;
+    let add_comment     = document.querySelector('#add-comment-reg') as HTMLInputElement;
     let comment_reg     = document.querySelector('#input-comment-reg') as HTMLInputElement;
     let commentlist     = document.querySelector('.tagbar-commentlist') as HTMLDivElement;
     let dynamic_btn     = document.querySelector('#dynamic-btn') as HTMLInputElement;
     let script_like     = document.querySelector('.script-like') as HTMLDivElement;
 
     // 输入框上下切换
-    input_tags.forEach(e=>{e.onkeyup=(event)=>{
+    inputTags.forEach(e=>{e.onkeyup=(event)=>{
         let index =  Number(event.target?.getAttribute('index'));
         if(event.key=="Enter" || event.key=="ArrowDown"){
             index = index == 2 ? 0 : index + 1;
         }else if(event.key=="ArrowUp"){
             index = index == 0 ? 2 : index - 1;
         }
-        input_tags[index].focus();
+        inputTags[index].focus();
     }});
     // 脚本展开
     scriptHide.onclick = () => {
@@ -628,8 +646,12 @@
         GM_setValue('TagMerge',tagMerge);
     }
     link_delete.onclick = ()=>{ GM_setValue('NoJump', link_delete.checked)}
+    close_comment.onclick = ()=>{ 
+        CloseComment(); 
+        GM_setValue('CloseComment', close_comment.checked)
+    }
     // 获取用户输入
-    add_tag_btn.onclick = () => {
+    add_tag.onclick = () => {
         if (tag_name.value && tag_text.value && tag_reg.value) {
             if(!tagReg.test(tag_reg.value)){
                 addTag({
@@ -651,7 +673,7 @@
         }
     };
     // 导出配置项到剪切板
-    export_tag.onclick = () =>{
+    const exportData = () =>{
         let exportData:{[key:string]:string|{}} = {};
         let key_storage:Array<string> = GM_listValues();
         key_storage.forEach(i=>{
@@ -661,7 +683,7 @@
         alert('已导出标签数据到剪切板！');
     };
     // 导入配置项到油猴
-    import_tag.onclick = ()=>{
+    const importData =  ()=>{
         if(import_area.value){
             try{
                 let importData = JSON.parse(import_area.value);
@@ -676,6 +698,8 @@
             alert('配置为空！请先在输入框粘贴配置并检查无误后点击【导入配置】');
         }
     }
+    export_tag.onclick = exportData;
+    import_tag.onclick = importData;
     // 更改标签大小
     const getTagSize = () =>{
         for(let radio of tagSize_radio){
@@ -688,7 +712,7 @@
     }
     tagSize_radio.forEach(radio => {radio.onclick = getTagSize});
 
-    add_tag_reg.onclick = () => {
+    add_comment.onclick = () => {
         if (comment_reg.value) {
             addKeyWord(comment_reg.value);
             comment_reg.value = '';
@@ -793,8 +817,8 @@
         width:number;
         list:Set<String>;
         nolist:Set<String>;
-        //tag_childNode:ChildNode;
-        //tagNode:ChildNode;
+        //tag_childNode:HTMLElement;
+        //tagNode:HTMLElement;
         tag_childNode:string;
         tagNode:string;
         constructor(tag_dic:any) {
@@ -816,7 +840,7 @@
         createElement(dom_str:string){
             let objE = document.createElement('div');
             objE.innerHTML = dom_str;
-            //return objE.childNodes[0];
+            //return objE;
             return dom_str;
         }
         // 子标签检测
@@ -1088,13 +1112,12 @@
                         let data_list:any = []
                         let data_json = JSON.parse(res.response)?.data?.list||[];
                         if(data_json.length>0){
-                            data_json.map(i=>{data_list.push(i?.uname)})
+                            data_json.map((i:any)=>{data_list.push(i?.uname)})
                         }
                         data = data_list.join(' ')
                     }else{
                         data = JSON.stringify(JSON.parse(res.response)?.data||[]);
                     }
-
                     //console.log(data)
                     func(data)
                 } else {
@@ -1137,6 +1160,28 @@
             i.outerHTML = i.innerText;
         }
     }
+    // 动态评论列表末尾添加收起按键
+    const CloseComment = ()=>{
+        if(close_comment.checked){
+            console.log('收起评论功能已开启')
+            elmGetter.each('div.bottom-page.paging-box-big.center', document, (reply:HTMLDivElement|any) => {
+                let close_btn = document.createElement('div');
+                close_btn.classList.add('close-btn');
+                close_btn.innerHTML = "<a>收起评论</a>";
+                reply.parentNode.insertBefore(close_btn,reply);
+                close_btn.onclick = ()=>{
+                    let comment_btn = reply.parentNode.parentNode.parentNode.parentNode.querySelector('.bili-dyn-action.comment.active');
+                    comment_btn.click();    // 关闭评论
+                    comment_btn.scrollIntoViewIfNeeded();   // 滚动到评论
+                }
+               console.log('添加收起评论按键')
+                if(!close_comment.checked){
+                    console.log('收起评论功能已关闭!')
+                    return false;
+                }
+            })
+        }
+    }
 
     //点赞、取消赞函数
     function dynamic_click() {
@@ -1167,6 +1212,7 @@
         tagMerge = GM_getValue('TagMerge',false);
         tag_merge.checked = tagMerge;
         link_delete.checked = GM_getValue('NoJump', false);
+        close_comment.checked = GM_getValue('CloseComment', false);
         dynamic_btn.checked = GM_getValue('DynamicLike', false);
         script_like.style.display = dynamic_btn.checked?'block':'none';
         tagSize = GM_getValue('TagSize','middle');
@@ -1198,14 +1244,20 @@
     const webType= [/https:\/\/(t|space).bilibili.com/, /https:\/\/www.bilibili.com\/video/];
     let local_href= location.href;
     if(webType[0].test(local_href)){
+        // 动态页面
+        CloseComment();
         Medal = false;
-        // 去除链接
+        // 关闭去除链接
         link_delete.checked = false;
-        link_delete.parentNode.style.display='none';
+        (link_delete.parentNode as HTMLElement).style.display='none';
     }else if(webType[1].test(local_href)){
-        // 动态点赞
+        // 视频页面
+        // 关闭收起评论
+        close_comment.checked = false;
+        (close_comment.parentNode as HTMLElement).style.display='none';
+        // 关闭动态点赞
         dynamic_btn.checked = false;
-        dynamic_btn.parentNode.style.display='none';
+        (dynamic_btn.parentNode as HTMLElement).style.display='none';
 
         script_like.style.display = 'none';
     }
@@ -1213,13 +1265,14 @@
         // 番剧、电影界面
         Style_tagPlace.innerHTML = tagPlaceDict.sub;
         Medal = false;
-        // 动态点赞
+        // 关闭收起评论
+        close_comment.checked = false;
+        (close_comment.parentNode as HTMLElement).style.display='none';
+        // 关闭动态点赞
         dynamic_btn.checked = false;
-        dynamic_btn.parentNode.style.display='none';
-
+        (dynamic_btn.parentNode as HTMLElement).style.display='none';
         script_like.style.display = 'none';
     }
-    // 监听 .user-info,.sub-user-info,div.user 元素
     const searchTag = (reply:any, pid:string)=>{
         tag_list.keyword(reply);
         if(tag_list.list.length==0){
@@ -1232,14 +1285,15 @@
         //标签列表中不含该用户 id 获取该用户近期动态内容
         tag_list.detect(pid, reply);
     }
-    elmGetter.each('.user-info,.sub-user-info,div.user', document, reply => {
+    // 监听 .user-info,.sub-user-info,div.user 用户信息元素
+    elmGetter.each('.user-info,.sub-user-info,div.user', document, (reply:HTMLDivElement|any)  => {
         //console.log(reply)
         let pid = getPid(reply)
         // 判断是否已请求过该用户
         if(Search&&!tag_list.isChecked(pid)){
             let searchBtn = document.createElement('div');
             searchBtn.classList.add('search-btn');
-            searchBtn.innerHTML = '<p>检测</p>'
+            searchBtn.innerHTML = `<p>检测</p>`;
             searchBtn.onclick = ()=>{
                 searchTag(reply, pid);
                 reply.removeChild(reply.querySelector('.search-btn'))
@@ -1247,11 +1301,12 @@
             reply.insertBefore(searchBtn,reply.childNodes[2])
             return;
         }
-        searchTag(reply, pid);
+        searchTag(reply, pid);  // 检测标签
         if(link_delete.checked){
-            noJump();
+            noJump();   // 去除跳转
         }
     })
+
     console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
 })();
 
