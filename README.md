@@ -156,12 +156,17 @@
 
 > ### 标签样式、面板操作示例
 <p class="half">
-<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/cf.png" width="40%" alt="用户标签"/>
-<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/pl.png" width="40%" alt="评论屏蔽"/>
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/tag.png" width="40%" alt="用户标签"/>
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/block.png" width="40%" alt="评论屏蔽"/>
 </p>
 <p class="half">
-<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/sz.png" width="40%" alt="脚本设置"/>
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/setting.png" width="40%" alt="脚本设置"/>
 <img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/标签样式.png" width="40%" alt="标签样式"/>
 </p>
-
-
+<p class="half">
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/hide.png" width="40%" alt="展开按键"/>
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/pb.png" width="40%" alt="屏蔽按键"/>
+</p>
+<p class="half">
+<img src="https://github.com/lyzoris/BilibiliComments-userTag/blob/main/images/close.png" width="40%" alt="收起评论"/>
+</p>
