@@ -1,7 +1,7 @@
 ## Bilibili【哔哩哔哩】 用户成分标签 ![bilibili](https://experiments.sparanoid.net/favicons/v2/www.bilibili.com.ico)
 
 #### 作者：Lyzoris
-#### 版本：2.5.1
+#### 版本：2.5.6
 #### 适用网页：Bilibili 视频页、个人动态页、用户空间页、番剧、电影等页面  
 #### 代码&ensp;&ensp;&ensp;&ensp;[**userTag.ts**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.ts)&ensp;&ensp;&ensp;&ensp;[**userTag.js**](https://github.com/lyzoris/BilibiliComments-userTag/blob/main/userTag.js)
 #### 油猴链接  &ensp;&ensp;&ensp;&ensp;[Bilibili【哔哩哔哩】 用户成分标签](https://greasyfork.org/zh-CN/scripts/451354)
@@ -13,7 +13,7 @@
 #### 功能
 &ensp;&ensp;&ensp;&ensp;成分标签：自定义标签名称，标签内容，标签关键词规则，标签颜色，是否隐藏评论，用户粉丝勋章显示  
 
-&ensp;&ensp;&ensp;&ensp;评论屏蔽：自定义评论屏蔽关键词规则（同【标签规则】），评论区、动态页面匹配到后将屏蔽该用户评论内容
+&ensp;&ensp;&ensp;&ensp;自定义屏蔽：自定义屏蔽关键词规则（正则表达式），主页、评论区、动态页面匹配到后将屏蔽内容
 
 &ensp;&ensp;&ensp;&ensp;其他功能：__【视频页】__ 用户勋章墙快捷显示，__【视频页】__ 去除关键词跳转，__【动态页】__ 评论末增加 收起评论 按键，__【动态页】__ 批量点赞动态
 
@@ -27,11 +27,20 @@
 &ensp;&ensp;&ensp;&ensp;以下为标签示例数据，可复制后在脚本设置-导入配置中粘贴保存以启用（仅供参考，不针对任何玩家和用户）：
 ```json
 {
-    "SearchTag":true,
+    "AutoDetect":false,
+    "BlockOption":{
+        "User": false,
+        "Comment": true,
+        "Dynamic": true,
+        "Video": true
+    },
+    "BlackList":[],
     "CloseComment":true,
-    "DetectConcerns":false,
-    "DetectMedal":false,
-    "DetectRepost":true,
+    "DetectOption": {
+        "Repost": true,
+        "Concerns": true,
+        "Medal": false
+    },
     "DynamicLike":true,
     "Keyword":["答辩"],
     "NoJump":false,
@@ -50,8 +59,7 @@
         "11":{"tag":"多重","text":"buff拉满","reg":"[三相之力][崩蓝]","color":"#e11e2d","hide":false}
     },
     "TagMerge":false,
-    "TagNameHide":false,
-    "TagSize":"middle"
+    "TagNameHide":false
 }
 ```
 #### 使用的库  
@@ -67,14 +75,18 @@
 
 > ### 成分标签  
 
-#### 配置内容  
+#### 配置内容
+- 标签检测  
 - 标签分类 
 - 标签内容 
 - 标签规则 
 - 标签颜色 
 - 标签屏蔽
 - 多标签合并  
-   
+
+#### 标签检测
+&ensp;&ensp;&ensp;&ensp;手动检测：点击用户头像后的“检测”按键以手动检测该指定用户的成分，请求数量少  
+&ensp;&ensp;&ensp;&ensp;自动检测：自动检测评论区所有用户成分，需大量请求
 #### 标签分类
 &ensp;&ensp;&ensp;&ensp;用户标签的分类（比如游戏、Vtuber、Up主等），用以区分不同种类的标签，合并相同种类的标签。    
 &ensp;&ensp;&ensp;&ensp;可在【脚本设置】中打开 标签不显示分类 关闭显示
@@ -113,7 +125,7 @@
 &ensp;&ensp;&ensp;&ensp;只需修改合并后标签的 ___标签规则___ 为 [待合并标签内容][待合并标签内容]...  
 &ensp;&ensp;&ensp;&ensp;__注意：__ 合并标签在标签面板中的顺序必须在所有其子标签之后     
 #### 标签显示面板
-1. 添加标签后将显示在标签面板中，可对标签进行操作和预览 
+1. 完善标签信息，点击“+”添加标签后将显示在标签面板中，可对标签进行操作和预览 
 2. 放上鼠标显示标签信息  
 3. 双击标签可重新设置标签  
 4. 点击标签左上方 x 号可删除标签  
@@ -121,14 +133,27 @@
 > ### 评论屏蔽
 
 #### 配置内容
-- 评论规则
+- 屏蔽选项
+- 手动屏蔽
+- 屏蔽规则  
+- 屏蔽操作  
+- 屏蔽效果  
 
-#### 评论规则
-&ensp;&ensp;&ensp;&ensp;用户评论屏蔽规则，同 __【标签规则】__  
-#### 评论屏蔽操作
-&ensp;&ensp;&ensp;&ensp;填写评论规则，点击添加规则即可屏蔽相应关键词  
+#### 屏蔽选项  
+&ensp;&ensp;&ensp;&ensp;【主页】__主页推荐__：按屏蔽规则匹配并屏蔽主页推荐视频  
+&ensp;&ensp;&ensp;&ensp;【动态、空间页】__用户动态__：按屏蔽规则匹配并屏蔽用户动态  
+&ensp;&ensp;&ensp;&ensp;【动态、视频页】__评论内容__：按屏蔽规则匹配并屏蔽评论内容  
+&ensp;&ensp;&ensp;&ensp;【动态、视频页】__用户屏蔽__：需打开 ___评论内容___，可点击 __屏蔽__ 按键屏蔽用户评论，将其加入黑名单
+#### 手动屏蔽
+&ensp;&ensp;&ensp;&ensp;开启 ___手动屏蔽用户___，可在用户评论回复后增加“屏蔽”按键，点击即可屏蔽该用户并将其加入黑名单
+#### 屏蔽规则
+&ensp;&ensp;&ensp;&ensp;使用 [正则表达式](https://gitee.com/thinkyoung/learn_regex) 匹配并屏蔽用户评论
+#### 屏蔽操作
+&ensp;&ensp;&ensp;&ensp;填写评论规则，点击“+”即可添加屏蔽关键词  
 &ensp;&ensp;&ensp;&ensp;双击标签可重新设置标签  
 &ensp;&ensp;&ensp;&ensp;点击标签左上方 x 号可删除标签  
+#### 屏蔽效果
+&ensp;&ensp;&ensp;&ensp;手动或根据关键词屏蔽该用户评论后，将完全隐藏其评论以及其子评论的内容
 > ### 脚本设置
 
 #### 导入、导出配置
