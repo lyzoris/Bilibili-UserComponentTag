@@ -13,16 +13,11 @@
         medal: 'https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id='
     };
     const childTagReg = new RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
-    const tagHide = {
+    const tagClassHide = {
         true: '.tag-class {display:none;}',
         false: '.tag-class {display:block;}'
     };
-    const tagPlace = {
-        middle: '.userTag {vertical-align: text-top;}',
-        sub: '.userTag {vertical-align: sub;}'
-    };
-    const Style_tagHide = elmGetter.create(`<style>${tagHide.false}</style>`);
-    const Style_tagPlace = elmGetter.create(`<style>${tagPlace.middle}</style>`);
+    const Style_tagClassHide = elmGetter.create(`<style>${tagClassHide.false}</style>`);
     const ScriptStyle_STR = ` 
     <style>
     .adblock-tips{
@@ -33,7 +28,7 @@
         position: relative;
         text-align: center;
         border-width: 0px;
-        vertical-align: text-top; 
+        vertical-align: sub; 
         margin-left: 4px; 
         margin-right:4px; 
         cursor: default;
@@ -582,7 +577,7 @@
     #reg-ruler:active{
         color: #cc6d89;
     }
-    </>
+    </style>
     `;
     const ScriptBody_STR = `
     <div id='Script-Body'>
@@ -619,7 +614,7 @@
                         粉丝勋章<input type="checkbox" id="detect-medal" style="margin-left:8px;height:11px">
                     </label>
                 </label>
-                <label class="set-label" for="tagname-hide" title="不显示标签分类，建议开启&#10;出现标签样式错误时请开启此项">标签不显示分类<input type="checkbox" id="tagname-hide" style="margin-left:50px;height:11px"></label>
+                <label class="set-label" for="tagClass-hide" title="不显示标签分类，建议开启&#10;出现标签样式错误时请开启此项">标签不显示分类<input type="checkbox" id="tagClass-hide" style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="tag-merge" title="相同类型标签合并，只显示一个标签分类&#10;可能影响标签样式，建议同时打开【标签不显示分类】">同类型标签合并<input type="checkbox" id="tag-merge" style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="link-delete" title="去除 评论区评论关键词蓝色点击跳转">去除关键词跳转<input type="checkbox" id="link-delete" style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="close-comment" title="动态评论末尾添加【收起评论】按键">动态添加收起评论<input type="checkbox" id="close-comment" style="margin-left:38px;height:11px"></label>
@@ -664,21 +659,20 @@
                 <div class="tagbar-commentlist"></div>
             </div>
         </div>
-    <div>`;
+    </div>`;
     const ScriptBody = elmGetter.create(ScriptBody_STR);
     const ScriptStyle = elmGetter.create(ScriptStyle_STR);
     const Head = document.head || document.querySelector('head');
     const Body = document.body || document.querySelector('body');
     Head.appendChild(ScriptStyle);
-    Head.appendChild(Style_tagHide);
-    Head.appendChild(Style_tagPlace);
+    Head.appendChild(Style_tagClassHide);
     Body.appendChild(ScriptBody);
     const scriptHide = ScriptBody.querySelector('.script-hide');
     const scriptMain = ScriptBody.querySelector('.script-main');
     const topNav = ScriptBody.querySelectorAll('.topnav-option');
     const scriptBar = ScriptBody.querySelectorAll('.scriptBar');
     const inputFields = ScriptBody.querySelectorAll('.input-tag');
-    let tagname_hide = ScriptBody.querySelector('#tagname-hide');
+    let tagClass_hide = ScriptBody.querySelector('#tagClass-hide');
     let tag_merge = ScriptBody.querySelector('#tag-merge');
     let detect_repost = ScriptBody.querySelector('#detect-repost');
     let detect_concerns = ScriptBody.querySelector('#detect-concerns');
@@ -770,9 +764,9 @@
         GM_setValue('DynamicLike', dynamic_btn.checked);
     };
     script_like.onclick = dynamicBatchLike;
-    tagname_hide.onclick = () => {
-        Style_tagHide.innerHTML = tagHide[String(tagname_hide.checked)];
-        GM_setValue('TagNameHide', tagname_hide.checked);
+    tagClass_hide.onclick = () => {
+        Style_tagClassHide.innerHTML = tagClassHide[String(tagClass_hide.checked)];
+        GM_setValue('TagClassHide', tagClass_hide.checked);
     };
     detect_repost.onclick = () => {
         DetectOption.Repost = detect_repost.checked;
@@ -862,13 +856,14 @@
             temp_keyword[keyword_index] = reg_text;
             keyword.push(reg_text);
             GM_setValue('Keyword', keyword);
-            let deleteTag = () => {
+            function deleteTag() {
                 commentlist.removeChild(new_tag);
                 delete temp_keyword[keyword_index];
                 keyword = [];
                 Object.keys(temp_keyword).map((key) => keyword.push(temp_keyword[key]));
                 GM_setValue('Keyword', keyword);
-            };
+            }
+            ;
             new_tag.children[0].onclick = deleteTag;
             new_tag.children[1].ondblclick = () => {
                 comment_reg.value = reg_text;
@@ -881,14 +876,15 @@
         let tag_index = Object.keys(tag).length;
         tag[tag_index] = tag_dic;
         tagList.push(tag, tag_index);
-        let deleteTag = () => {
+        function deleteTag() {
             taglist.removeChild(new_tag);
             delete tag[tag_index];
             let tag_temp = { ...tag };
             tag = {};
             Object.values(tag_temp).forEach((value, i) => { tag[i] = value; });
             tagList.pop(tag);
-        };
+        }
+        ;
         new_tag.children[0].onclick = deleteTag;
         new_tag.children[1].ondblclick = () => {
             tag_name.value = tag_dic.tag;
@@ -1387,14 +1383,18 @@
             GM_setValue('AutoDetect', GM_getValue('SearchTag', false));
             GM_deleteValue('SearchTag');
         }
+        if (all_data.includes('TagNameHide')) {
+            GM_setValue('TagClassHide', GM_getValue('TagNameHide', false));
+            GM_deleteValue('TagNameHide');
+        }
         all_data.includes('RefreshTime') && GM_deleteValue('RefreshTime');
         all_data.includes('BlockUser') && GM_deleteValue('BlockUser');
         all_data.includes('DetectConcerns') && GM_deleteValue('DetectConcerns');
         all_data.includes('DetectMedal') && GM_deleteValue('DetectMedal');
         all_data.includes('DetectRepost') && GM_deleteValue('DetectRepost');
         all_data.includes('TagSize') && GM_deleteValue('TagSize');
-        tagname_hide.checked = GM_getValue('TagNameHide', false);
-        Style_tagHide.innerHTML = tagHide[String(tagname_hide.checked)];
+        tagClass_hide.checked = GM_getValue('TagClassHide', false);
+        Style_tagClassHide.innerHTML = tagClassHide[String(tagClass_hide.checked)];
         AutoDetect = GM_getValue('AutoDetect', false);
         detection_mode.checked = AutoDetect;
         DetectOption = GM_getValue('DetectOption', { Repost: false, Concerns: false, Medal: false });
@@ -1409,7 +1409,7 @@
         dynamic_btn.checked = GM_getValue('DynamicLike', false);
         script_like.style.display = dynamic_btn.checked ? 'block' : 'none';
         GM_getValue('Keyword', []).map((key) => addKeyWord(key));
-        Object.values(GM_getValue('Tag', {})).map(i => { addTag(i); });
+        Object.values(GM_getValue('Tag', {})).map((i) => { addTag(i); });
     }
     const tagList = new TagList();
     const temp_keyword = {};
@@ -1441,7 +1441,6 @@
         default:
             tagInsertObserver();
             hideOption({ Medal: true, Comment: true, Like: true, Link: false });
-            Style_tagPlace.innerHTML = tagPlace.sub;
     }
     console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
 })();
