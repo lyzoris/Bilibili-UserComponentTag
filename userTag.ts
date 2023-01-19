@@ -1,3 +1,30 @@
+// ==UserScript==
+// @name         Bilibili【哔哩哔哩】 用户成分标签
+// @namespace    lycoris
+// @version      2.5.6
+// @description  根据 Bilibili 用户近期动态、粉丝勋章内容检测成分添加自定义标签，按规则屏蔽评论
+// @author       Lyzoris
+// @supportURL   https://github.com/lyzoris/BilibiliComments-userTag
+// @compatible   chrome 80 or later
+// @compatible   edge 80 or later
+// @match        https://www.bilibili.com
+// @match        https://www.bilibili.com/video/* 
+// @match        https://t.bilibili.com/*
+// @match        https://space.bilibili.com/*
+// @match        https://www.bilibili.com/bangumi/play/*
+// @icon         https://static.hdslb.com/images/favicon.ico
+// @connect      bilibili.com
+// @grant        GM_xmlhttpRequest
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_deleteValue 
+// @grant        GM_listValues
+// @grant        GM_setClipboard
+// @require      https://greasyfork.org/scripts/448895-elementgetter%E5%BA%93/code/ElementGetter%E5%BA%93.js?version=1106656
+// @license MIT
+// @run-at document-end
+// ==/UserScript==
+
 (function() {
     "use surict"
     const elmGetter = new ElementGetter();
@@ -12,16 +39,11 @@
         medal: 'https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id='
     };
     const childTagReg = new RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
-    const tagHide:{[key:string]:string} = {
+    const tagClassHide:{[key:string]:string} = {
         true:'.tag-class {display:none;}',
         false:'.tag-class {display:block;}'
     }
-    const tagPlace:{[key:string]:string} = {
-        middle:'.userTag {vertical-align: text-top;}',
-        sub:'.userTag {vertical-align: sub;}'
-    }
-    const Style_tagHide = elmGetter.create(`<style>${tagHide.false}</style>`)
-    const Style_tagPlace = elmGetter.create(`<style>${tagPlace.middle}</style>`)
+    const Style_tagClassHide = elmGetter.create(`<style>${tagClassHide.false}</style>`)
     const ScriptStyle_STR:string = ` 
     <style>
     .adblock-tips{
@@ -32,7 +54,7 @@
         position: relative;
         text-align: center;
         border-width: 0px;
-        vertical-align: text-top; 
+        vertical-align: sub; 
         margin-left: 4px; 
         margin-right:4px; 
         cursor: default;
@@ -581,7 +603,7 @@
     #reg-ruler:active{
         color: #cc6d89;
     }
-    </>
+    </style>
     `;
     const ScriptBody_STR:string = `
     <div id='Script-Body'>
@@ -618,7 +640,7 @@
                         粉丝勋章<input type="checkbox" id="detect-medal" style="margin-left:8px;height:11px">
                     </label>
                 </label>
-                <label class="set-label" for="tagname-hide" title="不显示标签分类，建议开启&#10;出现标签样式错误时请开启此项">标签不显示分类<input type="checkbox" id="tagname-hide" style="margin-left:50px;height:11px"></label>
+                <label class="set-label" for="tagClass-hide" title="不显示标签分类，建议开启&#10;出现标签样式错误时请开启此项">标签不显示分类<input type="checkbox" id="tagClass-hide" style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="tag-merge" title="相同类型标签合并，只显示一个标签分类&#10;可能影响标签样式，建议同时打开【标签不显示分类】">同类型标签合并<input type="checkbox" id="tag-merge" style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="link-delete" title="去除 评论区评论关键词蓝色点击跳转">去除关键词跳转<input type="checkbox" id="link-delete" style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="close-comment" title="动态评论末尾添加【收起评论】按键">动态添加收起评论<input type="checkbox" id="close-comment" style="margin-left:38px;height:11px"></label>
@@ -663,21 +685,20 @@
                 <div class="tagbar-commentlist"></div>
             </div>
         </div>
-    <div>`;
+    </div>`;
     const ScriptBody:HTMLDivElement = elmGetter.create(ScriptBody_STR);
     const ScriptStyle:HTMLStyleElement = elmGetter.create(ScriptStyle_STR);
     const Head = document.head || document.querySelector('head') as HTMLHeadElement;
     const Body = document.body || document.querySelector('body') as HTMLBodyElement;
     Head.appendChild(ScriptStyle);
-    Head.appendChild(Style_tagHide);
-    Head.appendChild(Style_tagPlace);
+    Head.appendChild(Style_tagClassHide);
     Body.appendChild(ScriptBody);
     const scriptHide    = ScriptBody.querySelector('.script-hide') as HTMLDivElement;
     const scriptMain    = ScriptBody.querySelector('.script-main') as HTMLDivElement;
     const topNav        = ScriptBody.querySelectorAll('.topnav-option') as NodeListOf<HTMLDivElement>;
     const scriptBar     = ScriptBody.querySelectorAll('.scriptBar') as NodeListOf<HTMLDivElement>;
     const inputFields   = ScriptBody.querySelectorAll('.input-tag') as NodeListOf<HTMLInputElement>;
-    let tagname_hide    = ScriptBody.querySelector('#tagname-hide') as HTMLInputElement;
+    let tagClass_hide    = ScriptBody.querySelector('#tagClass-hide') as HTMLInputElement;
     let tag_merge       = ScriptBody.querySelector('#tag-merge') as HTMLInputElement;
     let detect_repost   = ScriptBody.querySelector('#detect-repost') as HTMLInputElement;
     let detect_concerns = ScriptBody.querySelector('#detect-concerns') as HTMLInputElement;
@@ -732,10 +753,10 @@
             topNav.forEach(i => {i.classList.remove('topnav-active')});
             btn.classList.add('topnav-active');
             scriptBar.forEach(i => {i.style.display = 'none'});
-            scriptBar[Number(btn.getAttribute('index'))].style.display = 'flex';
+            scriptBar[Number(btn.getAttribute('index'))].style.display = 'flex';  // 设置 scriptBar 的 display 为 flex 而非 block
         }
     });
-    // 点击跳转正则页面
+    // 点击 ”屏蔽规则“ 跳转正则页面
     reg_ruler.onclick = (event) =>{
         event.altKey && window.open('https://gitee.com/thinkyoung/learn_regex');
     }
@@ -778,9 +799,9 @@
     };
     script_like.onclick = dynamicBatchLike;
     // 隐藏标签分类
-    tagname_hide.onclick = ()=>{
-        Style_tagHide.innerHTML = tagHide[String(tagname_hide.checked)];
-        GM_setValue('TagNameHide', tagname_hide.checked);
+    tagClass_hide.onclick = ()=>{
+        Style_tagClassHide.innerHTML = tagClassHide[String(tagClass_hide.checked)];
+        GM_setValue('TagClassHide', tagClass_hide.checked);
     }; 
     // 检测选项
     detect_repost.onclick = ()=>{
@@ -823,7 +844,7 @@
                 tag_reg.value = '';
                 tag_hide.checked = false;
             }else{
-                alert(`标签规则不应该包含‘ “ 、" ' { } \\n \\r等字符`)
+                alert(`标签规则不应该包含‘ “ 、" ' { } \\n \\r等字符`);
             }
         } else {
             alert('请将标签信息补充完整');
@@ -875,7 +896,7 @@
             keyword.push(reg_text);
             GM_setValue('Keyword', keyword);
             //移除标签
-            let deleteTag = () => {
+            function deleteTag(){
                 commentlist.removeChild(new_tag);
                 delete temp_keyword[keyword_index];
                 keyword = [];
@@ -898,7 +919,7 @@
         tag[tag_index] = tag_dic;
         tagList.push(tag, tag_index);
         //移除标签
-        let deleteTag = () => {
+        function deleteTag(){
             taglist.removeChild(new_tag);
             delete tag[tag_index]
             let tag_temp = {...tag}  // 深拷贝 tag
@@ -937,7 +958,7 @@
         let new_tag = elmGetter.create(`<div class="tags" style="color:${color}; width:${measureTextWidth("12px", text) + 8}px; border:${border}">
         <div class="delete-tag">x</div><p class="tag-info" title="${title}">${text}</p></div>`);
         parentNode.appendChild(new_tag);
-        return new_tag;
+        return new_tag;  // 返回插入的标签节点
     }
     // 计算文本字符串像素宽度
     function measureTextWidth(fontSize:string, text:string){
@@ -1464,12 +1485,17 @@
             (link_delete.parentNode as HTMLElement).style.display='none';
         }
     }
-    // 读取油猴配置
+    // 读取本地油猴配置到脚本
     function configInit(){
+        // 清除和更新无用配置
         let all_data = GM_listValues();
         if (all_data.includes('SearchTag')){
             GM_setValue('AutoDetect', GM_getValue('SearchTag', false));
             GM_deleteValue('SearchTag');
+        }
+        if(all_data.includes('TagNameHide')){
+            GM_setValue('TagClassHide', GM_getValue('TagNameHide', false));
+            GM_deleteValue('TagNameHide');
         }
         all_data.includes('RefreshTime') && GM_deleteValue('RefreshTime');
         all_data.includes('BlockUser') && GM_deleteValue('BlockUser');
@@ -1477,8 +1503,9 @@
         all_data.includes('DetectMedal') && GM_deleteValue('DetectMedal');
         all_data.includes('DetectRepost') && GM_deleteValue('DetectRepost');
         all_data.includes('TagSize') && GM_deleteValue('TagSize');
-        tagname_hide.checked = GM_getValue('TagNameHide',false);
-        Style_tagHide.innerHTML = tagHide[String(tagname_hide.checked)];
+
+        tagClass_hide.checked = GM_getValue('TagClassHide',false);
+        Style_tagClassHide.innerHTML = tagClassHide[String(tagClass_hide.checked)];
         AutoDetect = GM_getValue('AutoDetect',false);
         detection_mode.checked = AutoDetect;
         // 读取标签检测选项
@@ -1496,7 +1523,7 @@
         dynamic_btn.checked = GM_getValue('DynamicLike', false);
         script_like.style.display = dynamic_btn.checked?'block':'none';
         GM_getValue('Keyword', []).map((key:any) => addKeyWord(key));
-        Object.values(GM_getValue('Tag', {})).map(i=>{addTag(i)});
+        Object.values(GM_getValue('Tag', {})).map((i:any)=>{addTag(i)});
     }
 
     // 初始化标签列表
@@ -1532,7 +1559,6 @@
         default:  // 番剧、电影界面         
             tagInsertObserver();
             hideOption({Medal:true,Comment:true,Like:true,Link:false});
-            Style_tagPlace.innerHTML = tagPlace.sub;
     }
 
     console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
