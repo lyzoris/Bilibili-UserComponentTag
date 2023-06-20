@@ -103,6 +103,7 @@
     
     .tag-font {
         font-weight: 400;
+        font-size: 10px;
     }
     
     .script-hide {
@@ -1068,7 +1069,6 @@
         }
         // 检测新用户标签
         detectNewUserTag(pid:string, userNode:HTMLElement, replyNode:HTMLElement, userInfo:string) {
-            console.log('detect tag')
             //添加标签
             if (this.reg.test(userInfo)) {
                 this.hide && removeUserComment(replyNode);
@@ -1083,8 +1083,6 @@
         }
         // 添加用户标签
         addUserTag(userNode:HTMLElement){
-            console.log('add tag')
-            console.log(this.text)
             if(userNode.querySelector('.'+this.tag_class)&&tagMerge){
                 (userNode.querySelector('.'+this.tag_class) as HTMLElement).innerHTML += this.tag_childNode;
                 //userNode.querySelector('.'+this.tag_class)?.appendChild(this.tag_childNode);
@@ -1137,7 +1135,6 @@
         }
         // 检测新用户信息
         detectNewUserInfo(pid:string, userNode:HTMLElement, commentNode:HTMLElement) {
-            console.log('promise')
             let p = [];
             const p1 = (resolve:any)=>{Requests(ApiUrl.blog + pid, (data:string)=>{resolve(data)},'blog')};
             const p2 = (resolve:any)=>{Requests(ApiUrl.medal + pid,(data:string)=>{resolve(data)},'medal')};
@@ -1151,10 +1148,8 @@
             }else{
                 p = [p1];
             }
-            console.log(p)
             // 异步函数合并返回的数据
             Promise.all(p.map(i=>new Promise(i))).then((result:any)=>{
-                console.log(result)
                 this.list.map(i => i.detectNewUserTag(pid, userNode, commentNode, result.join('')));
                 if(DetectOption.Medal&&MedalShow){
                     this.getMedalData(pid, userNode, result[1]);
@@ -1245,8 +1240,6 @@
         .then(async (data)=>{
             let data_list:any = []
             let data_json = [];
-            console.log(requestUrl)
-            console.log(data)
             switch(state){
                 case 'blog':
                     // 动态列表
@@ -1290,8 +1283,6 @@
                 default:
                     data = JSON.stringify(data?.data||[])
             }
-             console.log(data)
-             console.log('---------------------------')
             func(data)
         })
         .catch(error=>console.log(error))
@@ -1456,13 +1447,11 @@
 
     // 检测用户标签
     function detectUserTag(userID:string, userInfo:HTMLElement, reply:HTMLElement){
-        console.log('ID: '+ userID)
         // 检测标签
         function detect(userID:string, userInfo:HTMLElement, reply:HTMLElement){
             if(tagList.list.length==0){return}
             tagList.checkUserInfo(userID, userInfo, reply);
             if (tagList.isChecked(userID)) { return}
-            console.log('detect')
             //标签列表中不含该用户 id 获取该用户近期动态内容
             tagList.detectNewUserInfo(userID, userInfo, reply);
         }
