@@ -1,17 +1,19 @@
 // ==UserScript==
 // @name         Bilibili【哔哩哔哩】 用户成分标签
 // @namespace    lycoris
-// @version      2.5.6
+// @version      2.6.0
 // @description  根据 Bilibili 用户近期动态、粉丝勋章内容检测成分添加自定义标签，按规则屏蔽评论
 // @author       Lyzoris
-// @supportURL   https://github.com/lyzoris/BilibiliComments-userTag
+// @supportURL   https://github.com/lyzoris/Bilibili-UserComponentTag
 // @compatible   chrome 80 or later
 // @compatible   edge 80 or later
 // @match        https://www.bilibili.com
 // @match        https://www.bilibili.com/video/* 
+// @match        https://www.bilibili.com/opus/*
 // @match        https://t.bilibili.com/*
 // @match        https://space.bilibili.com/*
 // @match        https://www.bilibili.com/bangumi/play/*
+// @match        https://www.bilibili.com/read/*
 // @icon         https://static.hdslb.com/images/favicon.ico
 // @connect      bilibili.com
 // @grant        GM_xmlhttpRequest
@@ -27,23 +29,29 @@
 
 (function() {
     "use surict"
-    const elmGetter = new ElementGetter();
-    const isNew:boolean = document.querySelectorAll('.item.goback').length != 0; // 检测B站版本
+    const elmGetter = 新建 ElementGetter();
+    const Cookie:string = document.cookie
+    const goOldVideo = Cookie.match(/(?<=go_old_video=)[-\d]{1,2}/)
+    let isNew:boolean = true
+    if(Cookie && goOldVideo){
+        isNew = goOldVideo[0] === '-1'
+    }// 检测B站版本
+    console.log('版本： '+isNew)
     let Page:string = ''; // 页面
-    const webType:{[key:string]:string}= {'^https:\/\/www.bilibili.com[\/]$':'Main', 'https:\/\/(t|space).bilibili.com':'Dynamic', 'https:\/\/www.bilibili.com\/video':'Video'};
-    Object.keys(webType).map(urlReg=>{if(RegExp(urlReg).test(location.href)){Page = webType[urlReg]}}) // 检测当前页面
+    const webType:{[密钥:string]:string}= {'^https:\/\/www.bilibili.com[\/]$':'Main', 'https:\/\/(t|space).bilibili.com':'Dynamic', 'https:\/\/www.bilibili.com\/video':'Video'};
+    Object.keys(webType)。map(urlReg=>{if(RegExp(urlReg)。test(location.href)){Page = webType[urlReg]}}) // 检测当前页面
 
-    const ApiUrl:{[key:string]:string} = {
-        blog:'https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?&host_mid=',
+    const ApiUrl:{[密钥:string]:string} = {
+        博客:'https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid=',
         concerns:'https://api.bilibili.com/x/relation/followings?vmid=',
         medal: 'https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id='
     };
-    const childTagReg = new RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
-    const tagClassHide:{[key:string]:string} = {
+    const childTagReg = 新建 RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
+    const tagClassHide:{[密钥:string]:string} = {
         true:'.tag-class {display:none;}',
-        false:'.tag-class {display:block;}'
+        false:'.tag-class {display:flex;}'
     }
-    const Style_tagClassHide = elmGetter.create(`<style>${tagClassHide.false}</style>`)
+    const Style_tagClassHide = elmGetter.创建(`<style>${tagClassHide.false}</style>`)
     const ScriptStyle_STR:string = ` 
     <style>
     .adblock-tips{
@@ -64,13 +72,16 @@
         color: rgba(87, 127, 184, 1);
         background-color: #9ebae833;
         float: left;
-        text-align: center;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: center;
+        justify-content: center;
         border-width: 0.5px;
         border-style: solid;
         border-bottom-left-radius: 1px;
         border-top-left-radius: 1px;
         height: 16px;
-        line-height: 16px;
+
     }
     
     .tag-class {
@@ -78,8 +89,11 @@
         border-bottom-right-radius: 1px;
         border-top-right-radius: 1px;
         float: left;
+        display: flex;
+        flex-wrap: wrap;
+        align-content: center;
+        justify-content: center;
         box-sizing: content-box;
-        text-align: center;
         border-width: 0.5px;
         border-color: #f25d8e;
         border-style: solid;
@@ -87,17 +101,10 @@
         border-top-left-radius: 1px;
         color: #f25d8e;
         height: 16px;
-        line-height: 16px;
     }
     
     .tag-font {
-        width: 200%;
-        height: 200%;
         font-weight: 400;
-        transform-origin: center;
-        font-size: 20px;
-        line-height: 24px;
-        transform: scale(0.6) translate(-40%, -30%);
     }
     
     .script-hide {
@@ -603,6 +610,13 @@
     #reg-ruler:active{
         color: #cc6d89;
     }
+    #detect-page{
+        height: 5px;
+        width: 100px;
+    }
+    #offset-page{
+        padding-left: 20px;
+    }
     </style>
     `;
     const ScriptBody_STR:string = `
@@ -640,6 +654,7 @@
                         粉丝勋章<input type="checkbox" id="detect-medal" style="margin-left:8px;height:11px">
                     </label>
                 </label>
+                <label class="set-label" for="detect-page" title="检测用户动态和关注列表页数&#10;越大加载时间越长">检测页数<span id="offset-page">1</span><input type="range" id="detect-page" value=1 max=10 min=1 step=1 style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="tagClass-hide" title="不显示标签分类，建议开启&#10;出现标签样式错误时请开启此项">标签不显示分类<input type="checkbox" id="tagClass-hide" style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="tag-merge" title="相同类型标签合并，只显示一个标签分类&#10;可能影响标签样式，建议同时打开【标签不显示分类】">同类型标签合并<input type="checkbox" id="tag-merge" style="margin-left:50px;height:11px"></label>
                 <label class="set-label" for="link-delete" title="去除 评论区评论关键词蓝色点击跳转">去除关键词跳转<input type="checkbox" id="link-delete" style="margin-left:50px;height:11px"></label>
@@ -686,10 +701,10 @@
             </div>
         </div>
     </div>`;
-    const ScriptBody:HTMLDivElement = elmGetter.create(ScriptBody_STR);
-    const ScriptStyle:HTMLStyleElement = elmGetter.create(ScriptStyle_STR);
+    const ScriptBody:HTMLDivElement = elmGetter.创建(ScriptBody_STR);
+    const ScriptStyle:HTMLStyleElement = elmGetter.创建(ScriptStyle_STR);
     const Head = document.head || document.querySelector('head') as HTMLHeadElement;
-    const Body = document.body || document.querySelector('body') as HTMLBodyElement;
+    const 内容 = document.内容 || document.querySelector('body') as HTMLBodyElement;
     Head.appendChild(ScriptStyle);
     Head.appendChild(Style_tagClassHide);
     Body.appendChild(ScriptBody);
@@ -698,12 +713,14 @@
     const topNav        = ScriptBody.querySelectorAll('.topnav-option') as NodeListOf<HTMLDivElement>;
     const scriptBar     = ScriptBody.querySelectorAll('.scriptBar') as NodeListOf<HTMLDivElement>;
     const inputFields   = ScriptBody.querySelectorAll('.input-tag') as NodeListOf<HTMLInputElement>;
-    let tagClass_hide    = ScriptBody.querySelector('#tagClass-hide') as HTMLInputElement;
-    let tag_merge       = ScriptBody.querySelector('#tag-merge') as HTMLInputElement;
+    let tagClass_hide   = ScriptBody.querySelector('#tagClass-hide') as HTMLInputElement;
+    let tag_merge       = ScriptBody.querySelector('#tag-merge') as HTMLInputElement; 
     let detect_repost   = ScriptBody.querySelector('#detect-repost') as HTMLInputElement;
     let detect_concerns = ScriptBody.querySelector('#detect-concerns') as HTMLInputElement;
     let detect_medal    = ScriptBody.querySelector('#detect-medal') as HTMLInputElement;
     let detection_mode  = ScriptBody.querySelector('#detectionMode-input') as HTMLInputElement;
+    let detect_page     = ScriptBody.querySelector('#detect-page') as HTMLInputElement;
+    let offset_page     = ScriptBody.querySelector('#offset-page') as HTMLSpanElement;
     let link_delete     = ScriptBody.querySelector('#link-delete') as HTMLInputElement;
     let close_comment   = ScriptBody.querySelector('#close-comment') as HTMLInputElement;
     let import_area     = ScriptBody.querySelector('#import-area') as HTMLInputElement;
@@ -815,6 +832,12 @@
     detect_medal.onclick = () =>{
         DetectOption.Medal = detect_medal.checked;
         GM_setValue('DetectOption',DetectOption);
+    }
+    // 检测精度
+    detect_page.onchange = () =>{
+        offset_page.innerText = detect_page.value
+        maxOffset = Number(detect_page.value)
+        GM_setValue('MaxDetectPage', maxOffset);
     }
     // 标签合并
     tag_merge.onclick = ()=>{
@@ -1047,6 +1070,7 @@
         }
         // 检测新用户标签
         detectNewUserTag(pid:string, userNode:HTMLElement, replyNode:HTMLElement, userInfo:string) {
+            console.log('detect tag')
             //添加标签
             if (this.reg.test(userInfo)) {
                 this.hide && removeUserComment(replyNode);
@@ -1061,6 +1085,8 @@
         }
         // 添加用户标签
         addUserTag(userNode:HTMLElement){
+            console.log('add tag')
+            console.log(this.text)
             if(userNode.querySelector('.'+this.tag_class)&&tagMerge){
                 (userNode.querySelector('.'+this.tag_class) as HTMLElement).innerHTML += this.tag_childNode;
                 //userNode.querySelector('.'+this.tag_class)?.appendChild(this.tag_childNode);
@@ -1113,8 +1139,9 @@
         }
         // 检测新用户信息
         detectNewUserInfo(pid:string, userNode:HTMLElement, commentNode:HTMLElement) {
+            console.log('promise')
             let p = [];
-            const p1 = (resolve:any)=>{Requests(ApiUrl.blog + pid,(data:string)=>{resolve(data)},'blog')};
+            const p1 = (resolve:any)=>{Requests(ApiUrl.blog + pid, (data:string)=>{resolve(data)},'blog')};
             const p2 = (resolve:any)=>{Requests(ApiUrl.medal + pid,(data:string)=>{resolve(data)},'medal')};
             const p3 = (resolve:any)=>{Requests(`${ApiUrl.concerns}${pid}&pn=1&ps=50`,(data:string)=>{resolve(data)},'concerns')};
             if(DetectOption.Concerns&&DetectOption.Medal){
@@ -1126,13 +1153,15 @@
             }else{
                 p = [p1];
             }
+            console.log(p)
             // 异步函数合并返回的数据
             Promise.all(p.map(i=>new Promise(i))).then((result:any)=>{
+                console.log(result)
                 this.list.map(i => i.detectNewUserTag(pid, userNode, commentNode, result.join('')));
                 if(DetectOption.Medal&&MedalShow){
                     this.getMedalData(pid, userNode, result[1]);
                 }
-            });
+            }).catch(error=>{console.log(error)});
         }
         // 解析勋章墙数据到字典
         getMedalData(pid:string, userNode:HTMLElement, data:string){
@@ -1193,81 +1222,92 @@
                 let medalBtn = userNode.querySelector('.medalTag') as HTMLDivElement;
                 let table = userNode.querySelector('.medal-table') as HTMLDivElement;
                 medalBtn.onclick = ()=>{
-                    let disp = table.style.display;
-                    table.style.left = medalBtn.offsetLeft + 50 +'px';
-                    table.style.display = disp === 'block'? 'none':'block';
+                    let disp = table.style。display;
+                    table.style。left = medalBtn.offsetLeft + 50 +'px';
+                    table.style。display = disp === 'block'? 'none':'block';
                 }
             }
         }
     }
     // 单次执行函数  
     let RunOnce = function FunctionRunOnlyOnce(func:any) {
-        func.apply(arguments);
+        func.应用(arguments);
         RunOnce = ()=>{};
     }
     // 发起网络请求
-    function Requests(requestUrl:string, func:any, state:string){
-        GM_xmlhttpRequest({
-            method: "get",
-            url: requestUrl,
-            data: '',
+    function Requests(requestUrl:string,func:any, state:string){
+        fetch(requestUrl, {
+            method: 'GET',
+            credentials: 'include',
             headers: {
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Concerns Gecko) Chrome/104.0.0.0 Safari/537.36'
-            },
-            onload: function(res: { status: number; response: string; }) {
-                if (res.status === 200) {
-                   let data;
-                    if(state==='blog'){
-                        // 动态
-                        let data_list:any = []
-                        let data_json = JSON.parse(res.response)?.data?.items||[];
-                        if(data_json.length>0){
-                            data_json.map((i:any)=>{
-                                let zhuanf_text = i?.modules?.module_dynamic?.desc?.text||'';
-                                let origin_text = i?.orig?.modules?.module_dynamic?.desc?.text||'';
-                                if(zhuanf_text){
-                                    if(!DetectOption.Repost){
-                                    // 浏览器原生中文分词（分词不准确）
-                                    //const segmenterCn = new Intl.Segmenter('cn',{ granularity: 'word' });
-                                    //let segments = segmenterCn.segment(zhuanf_text);
-                                    //Array.from(segments).map(i=>data_list.push(i.segment));
-                                        data_list.push({'text':zhuanf_text});
-                                    }else{
-                                        data_list.push({'text':zhuanf_text,'orig_text':origin_text});
-                                    }
-                                }
-                            })
-                        }
-                        data = JSON.stringify(data_list).replace(/\[.{1,12}\]/g,''); // 去除表情字符串
-                        //console.log(data)
-                    }else if(state==='concerns'){
-                        // 关注列表
-                        let data_list:any = []
-                        let data_json = JSON.parse(res.response)?.data?.list||[];
-                        data_json.length>0 && data_json.map((i:any)=>{data_list.push(i?.uname)})
-                        data = data_list.join(' ')
-                    }else{
-                        data = JSON.stringify(JSON.parse(res.response)?.data||[]);
+            }
+        })
+        。then(response => response.json())
+        。then(async (data)=>{
+            let data_list:any = []
+            let data_json = [];
+            console.log(requestUrl)
+            console.log(data)
+            switch(state){
+                case 'blog':
+                    // 动态列表
+                    data_json = data?.data?.items||[]
+                    if(data_json.length===0){
+                        return
                     }
-                    //console.log(data)
-                    func(data)
-                } else {
-                    console.log('加载用户信息失败');
-                    console.log(res);
-                }
-            },
-        });
+                    // let offset = data?.data.offset || ''
+                    // let offset_num = 1
+                    // while(offset && offset_num < maxOffset){
+                    //     let nextPage = await fetch(`https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=${offset}&host_mid=${pid}`)
+                    //     let nextPageData = await nextPage.json()
+                    //     offset = nextPageData?.data.offset || ''
+                    //     offset_num += 1
+                    //     //console.log(offset,nextPageData)
+                    // }
+                    // console.log(data)
+                    data_json.map((博客:any)=>{
+                        let zhuanf_text = blog?.modules?.module_dynamic?.desc?.text||'';
+                        let origin_text = blog?.orig?.modules?.module_dynamic?.desc?.text||'';
+                        if(zhuanf_text){
+                            if(!DetectOption.Repost){
+                            // 浏览器原生中文分词（分词不准确）
+                            //const segmenterCn = new Intl.Segmenter('cn',{ granularity: 'word' });
+                            //let segments = segmenterCn.segment(zhuanf_text);
+                            //Array.from(segments).map(i=>data_list.push(i.segment));
+                                data_list.push({'text':zhuanf_text});
+                            }else{
+                                data_list.push({'text':zhuanf_text,'orig_text':origin_text});
+                            }
+                        }
+                    })
+                    data = JSON.stringify(data_list)。replace(/\[.{1,12}\]/g,''); // 去除表情字符串
+                    break;
+                case 'concerns':
+                    // 关注列表
+                    data_json = data?.data?.list||[]
+                    data_json.length>0 && data_json.map((i:any)=>{data_list.push(i?.uname)})
+                    data = data_list.join(' ')
+                    break;
+                默认:
+                    data = JSON.stringify(data?.data||[])
+            }
+             console.log(data)
+             console.log('---------------------------')
+            func(data)
+        })
+        。catch(error=>console.log(error))
     }
     // 获取用户 id
     function getUserID(userNode:any){
         if (isNew) {
             return userNode?.querySelector('.user-name,.sub-user-name')?.dataset?.userId || userNode?.querySelector('.name')?.dataset?.usercardMid;
         } else {
-            return userNode?.querySelector('.name')?.dataset?.usercardMid || userNode.children[0].href.replace(/[^\d]/g, "");
+            return userNode?.querySelector('.name')?.dataset?.usercardMid || userNode.children[0]。href。replace(/[^\d]/g, "");
         }
     }
     // 去除新版关键词跳转搜索
-    function deleteJumpLink(comment:HTMLElement){
+    function deleteJumpLink(评论:HTMLElement){
         if(link_delete.checked){
             let jump_word = comment?.querySelectorAll('.jump-link.search-word') as NodeListOf<HTMLElement>;
             // console.log(jump_word)
@@ -1313,6 +1353,7 @@
         },600);
     }
 
+
      // 主页推荐视频屏蔽
      function mainPageBlock(){
         if(keyword.length===0){return}
@@ -1323,6 +1364,7 @@
             let authorHref = author?.href?.match(/(?<=https:\/\/space.bilibili.com\/)\d+$/)
             let authorID = authorHref ? authorHref[0] : ''
             let title:string|any = (reply?.querySelector('.bili-video-card__info--tit') as HTMLSpanElement).title
+
             //console.log(`视频标题：${title} --作者：${authorName} Pid:${authorID}`)
 
             // 按视频标题关键词正则屏蔽
@@ -1334,10 +1376,11 @@
                 }
             }
             // 按作者屏蔽
-            if(blackList.has(authorID)||blackList.has(authorName)){
+            if(blackList.has(authorID)||blackList.has(authorName)||keyword.includes(authorName)){
                 reply?.parentNode?.removeChild(reply)
                 console.log(`已屏蔽视频 %c${title}  %c作者ID: %c${authorID}`,'color: #67d0ff;','color: #30aa35;', 'color: #f44336; font-weight: bolder')
             }
+            // 关闭此功能
             if(!BlockOption.Video){
                 return false
             }
@@ -1415,17 +1458,19 @@
 
     // 检测用户标签
     function detectUserTag(userID:string, userInfo:HTMLElement, reply:HTMLElement){
+        console.log('ID: '+ userID)
         // 检测标签
         function detect(userID:string, userInfo:HTMLElement, reply:HTMLElement){
             if(tagList.list.length==0){return}
             tagList.checkUserInfo(userID, userInfo, reply);
             if (tagList.isChecked(userID)) { return}
+            console.log('detect')
             //标签列表中不含该用户 id 获取该用户近期动态内容
             tagList.detectNewUserInfo(userID, userInfo, reply);
         }
         // 创建检测按键
         if(!AutoDetect&&!tagList.isChecked(userID)){
-            let searchBtn = elmGetter.create('<p class="search-btn">检测</p>') as HTMLElement; 
+            let searchBtn = elmGetter.创建('<p class="search-btn">检测</p>') as HTMLElement; 
             searchBtn.onclick = ()=>{  // 点击检测后”屏蔽“按键的点击事件可能会失效 
                 detect(userID, userInfo, reply);
                 userInfo.removeChild(searchBtn);
@@ -1448,7 +1493,7 @@
     function tagInsertObserver(){
         elmGetter.each('.sub-reply-item,.content-warp,.list-item.reply-wrap,.reply-item.reply-wrap', document,(reply:HTMLElement)=>{
             let userInfo = reply?.querySelector('div.user-info:not(.section),.sub-user-info,div.user') as HTMLElement; // 用户信息
-            let comment = reply?.querySelector('span.reply-content,p.text,span.text-con') as HTMLElement;  // 用户评论
+            let 评论 = reply?.querySelector('span.reply-content,p.text,span.text-con') as HTMLElement;  // 用户评论
             // 标签检测
             let userID:string = getUserID(userInfo) // 获取用户 id 可能为 null
 
@@ -1456,54 +1501,37 @@
                 // 关键词或手动屏蔽用户评论
                 if(userCommentBlock(userID, reply, comment)){return}  //屏蔽用户则直接返回
                 // 去除跳转链接
-                deleteJumpLink(comment);
+                deleteJumpLink(评论);
                 // 判断是否已请求过该用户
                 detectUserTag(userID, userInfo, reply);
             }
         })
     }
     // 隐藏不可用功能
-    function hideOption(option:{Medal:boolean,Comment:boolean,Like:boolean,Link:boolean}){
+    function hideOption(option:{Medal:boolean,评论:boolean,Like:boolean,Link:boolean}){
         if(option.Medal){
             // 关闭勋章栏功能
             MedalShow = false;
         }
-        if(option.Comment){
+        if(option.评论){
             // 关闭并隐藏收起评论功能
             close_comment.checked = false;
-            (close_comment.parentNode as HTMLElement).style.display='none';
+            (close_comment.parentNode as HTMLElement)。style。display='none';
         }
         if(option.Like){
             // 关闭并隐藏动态批量点赞功能
             dynamic_btn.checked = false;
-            (dynamic_btn.parentNode as HTMLElement).style.display='none';
-            script_like.style.display = 'none';
+            (dynamic_btn.parentNode as HTMLElement)。style。display='none';
+            script_like.style。display = 'none';
         }
         if(option.Link){
             // 关闭并隐藏去除链接功能
             link_delete.checked = false;
-            (link_delete.parentNode as HTMLElement).style.display='none';
+            (link_delete.parentNode as HTMLElement)。style。display='none';
         }
     }
     // 读取本地油猴配置到脚本
     function configInit(){
-        // 清除和更新无用配置
-        let all_data = GM_listValues();
-        if (all_data.includes('SearchTag')){
-            GM_setValue('AutoDetect', GM_getValue('SearchTag', false));
-            GM_deleteValue('SearchTag');
-        }
-        if(all_data.includes('TagNameHide')){
-            GM_setValue('TagClassHide', GM_getValue('TagNameHide', false));
-            GM_deleteValue('TagNameHide');
-        }
-        all_data.includes('RefreshTime') && GM_deleteValue('RefreshTime');
-        all_data.includes('BlockUser') && GM_deleteValue('BlockUser');
-        all_data.includes('DetectConcerns') && GM_deleteValue('DetectConcerns');
-        all_data.includes('DetectMedal') && GM_deleteValue('DetectMedal');
-        all_data.includes('DetectRepost') && GM_deleteValue('DetectRepost');
-        all_data.includes('TagSize') && GM_deleteValue('TagSize');
-
         tagClass_hide.checked = GM_getValue('TagClassHide',false);
         Style_tagClassHide.innerHTML = tagClassHide[String(tagClass_hide.checked)];
         AutoDetect = GM_getValue('AutoDetect',false);
@@ -1511,54 +1539,59 @@
         // 读取标签检测选项
         DetectOption = GM_getValue('DetectOption',{Repost:false,Concerns:false,Medal:false});
         ({Repost:detect_repost.checked,Concerns:detect_concerns.checked,Medal:detect_medal.checked} = DetectOption);
+        maxOffset = GM_getValue('MaxDetectPage', 1);
+        detect_page.value = maxOffset.toString()
+        offset_page.innerText = maxOffset.toString()
+
         // 读取屏蔽选项
-        BlockOption = GM_getValue('BlockOption', {User:false,Comment:false,Dynamic:false,Video:false});
-        ({User: block_user.checked, Comment: block_comment.checked, Dynamic: block_dynamic.checked, Video: block_video.checked} = BlockOption);
-        blackList = new Set(GM_getValue('BlackList', []));
+        BlockOption = GM_getValue('BlockOption', {User:false,评论:false,Dynamic:false,Video:false});
+        ({User: block_user.checked, 评论: block_comment.checked, Dynamic: block_dynamic.checked, Video: block_video.checked} = BlockOption);
+        blackList = 新建 Set(GM_getValue('BlackList', []));
 
         tagMerge = GM_getValue('TagMerge',false);
         tag_merge.checked = tagMerge;
         link_delete.checked = GM_getValue('NoJump', false);
         close_comment.checked = GM_getValue('CloseComment', false);
         dynamic_btn.checked = GM_getValue('DynamicLike', false);
-        script_like.style.display = dynamic_btn.checked?'block':'none';
-        GM_getValue('Keyword', []).map((key:any) => addKeyWord(key));
-        Object.values(GM_getValue('Tag', {})).map((i:any)=>{addTag(i)});
+        script_like.style。display = dynamic_btn.checked?'block':'none';
+        GM_getValue('Keyword', [])。map((密钥:any) => addKeyWord(密钥));
+        Object.values(GM_getValue('Tag', {}))。map((i:any)=>{addTag(i)});
     }
 
     // 初始化标签列表
-    const tagList = new TagList();  
-    const temp_keyword:{[key:number|string]:string} = {};
+    const tagList = 新建 TagList();  
+    const temp_keyword:{[密钥:number|string]:string} = {};
     const MedalDict:any = {};  // 勋章对象
-    let tag:{[key:number|string]:{tag:string,text:string,reg:string,color:string,hide:boolean}} = {};  // 标签对象
+    let tag:{[密钥:number|string]:{tag:string,text:string,reg:string,color:string,隐藏:boolean}} = {};  // 标签对象
     let keyword:Array<string> = [];  // 关键词列表
     // 读取油猴数据，设置
     let tagMerge:boolean = false;  // 标签合并
     let MedalShow:boolean = false;  // 显示勋章墙
     let AutoDetect:boolean = false;  // 自动检测标签
     let DetectOption = {Repost:false,Concerns:false,Medal:false};  // 标签检测选项
-    let BlockOption = {User:false,Comment:false,Dynamic:false,Video:false};  // 屏蔽选项
-    let blackList:Set<String> = new Set();  // 用户黑名单
+    let BlockOption = {User:false,评论:false,Dynamic:false,Video:false};  // 屏蔽选项
+    let blackList:Set<String> = 新建 Set();  // 用户黑名单
+    let maxOffset = 1;
     configInit();
     // 根据当前页面执行对应的函数
     switch(Page){
         case 'Main':  // 主页     
             mainPageBlock();
-            hideOption({Medal:true,Comment:true,Like:true,Link:true});
+            hideOption({Medal:true,评论:true,Like:true,Link:true});
             break;
         case 'Dynamic':  // 动态页面       
             dynamicPageBlock();
             tagInsertObserver();
             closeComment();
-            hideOption({Medal:true,Comment:false,Like:false,Link:true});
+            hideOption({Medal:true,评论:false,Like:false,Link:true});
             break;
         case 'Video':  // 视频页面          
             tagInsertObserver();
-            hideOption({Medal:false,Comment:true,Like:true,Link:false});
+            hideOption({Medal:false,评论:true,Like:true,Link:false});
             break;
-        default:  // 番剧、电影界面         
+        默认:  // 番剧、电影界面         
             tagInsertObserver();
-            hideOption({Medal:true,Comment:true,Like:true,Link:false});
+            hideOption({Medal:true,评论:true,Like:true,Link:false});
     }
 
     console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
