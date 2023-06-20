@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Bilibili【哔哩哔哩】 用户成分标签
 // @namespace    lycoris
-// @version      2.6.0
+// @version      2.6.2
 // @description  根据 Bilibili 用户近期动态、粉丝勋章内容检测成分添加自定义标签，按规则屏蔽评论
 // @author       Lyzoris
 // @supportURL   https://github.com/lyzoris/Bilibili-UserComponentTag
@@ -16,7 +16,6 @@
 // @match        https://www.bilibili.com/read/*
 // @icon         https://static.hdslb.com/images/favicon.ico
 // @connect      bilibili.com
-// @grant        GM_xmlhttpRequest
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue 
@@ -29,7 +28,7 @@
 
 (function() {
     "use surict"
-    const elmGetter = 新建 ElementGetter();
+    const elmGetter = new ElementGetter();
     const Cookie:string = document.cookie
     const goOldVideo = Cookie.match(/(?<=go_old_video=)[-\d]{1,2}/)
     let isNew:boolean = true
@@ -38,20 +37,20 @@
     }// 检测B站版本
     console.log('版本： '+isNew)
     let Page:string = ''; // 页面
-    const webType:{[密钥:string]:string}= {'^https:\/\/www.bilibili.com[\/]$':'Main', 'https:\/\/(t|space).bilibili.com':'Dynamic', 'https:\/\/www.bilibili.com\/video':'Video'};
-    Object.keys(webType)。map(urlReg=>{if(RegExp(urlReg)。test(location.href)){Page = webType[urlReg]}}) // 检测当前页面
+    const webType:{[key:string]:string}= {'^https:\/\/www.bilibili.com[\/]$':'Main', 'https:\/\/(t|space).bilibili.com':'Dynamic', 'https:\/\/www.bilibili.com\/video':'Video'};
+    Object.keys(webType).map(urlReg=>{if(RegExp(urlReg).test(location.href)){Page = webType[urlReg]}}) // 检测当前页面
 
-    const ApiUrl:{[密钥:string]:string} = {
-        博客:'https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid=',
+    const ApiUrl:{[key:string]:string} = {
+        blog:'https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space?offset=&host_mid=',
         concerns:'https://api.bilibili.com/x/relation/followings?vmid=',
         medal: 'https://api.live.bilibili.com/xlive/web-ucenter/user/MedalWall?target_id='
     };
-    const childTagReg = 新建 RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
-    const tagClassHide:{[密钥:string]:string} = {
+    const childTagReg = new RegExp(/^(\[.*?\])(\[.*?\])*(\[.*?\])$/);
+    const tagClassHide:{[key:string]:string} = {
         true:'.tag-class {display:none;}',
         false:'.tag-class {display:flex;}'
     }
-    const Style_tagClassHide = elmGetter.创建(`<style>${tagClassHide.false}</style>`)
+    const Style_tagClassHide = elmGetter.create(`<style>${tagClassHide.false}</style>`)
     const ScriptStyle_STR:string = ` 
     <style>
     .adblock-tips{
@@ -81,7 +80,6 @@
         border-bottom-left-radius: 1px;
         border-top-left-radius: 1px;
         height: 16px;
-
     }
     
     .tag-class {
@@ -701,10 +699,10 @@
             </div>
         </div>
     </div>`;
-    const ScriptBody:HTMLDivElement = elmGetter.创建(ScriptBody_STR);
-    const ScriptStyle:HTMLStyleElement = elmGetter.创建(ScriptStyle_STR);
+    const ScriptBody:HTMLDivElement = elmGetter.create(ScriptBody_STR);
+    const ScriptStyle:HTMLStyleElement = elmGetter.create(ScriptStyle_STR);
     const Head = document.head || document.querySelector('head') as HTMLHeadElement;
-    const 内容 = document.内容 || document.querySelector('body') as HTMLBodyElement;
+    const Body = document.body || document.querySelector('body') as HTMLBodyElement;
     Head.appendChild(ScriptStyle);
     Head.appendChild(Style_tagClassHide);
     Body.appendChild(ScriptBody);
@@ -1222,16 +1220,16 @@
                 let medalBtn = userNode.querySelector('.medalTag') as HTMLDivElement;
                 let table = userNode.querySelector('.medal-table') as HTMLDivElement;
                 medalBtn.onclick = ()=>{
-                    let disp = table.style。display;
-                    table.style。left = medalBtn.offsetLeft + 50 +'px';
-                    table.style。display = disp === 'block'? 'none':'block';
+                    let disp = table.style.display;
+                    table.style.left = medalBtn.offsetLeft + 50 +'px';
+                    table.style.display = disp === 'block'? 'none':'block';
                 }
             }
         }
     }
     // 单次执行函数  
     let RunOnce = function FunctionRunOnlyOnce(func:any) {
-        func.应用(arguments);
+        func.apply(arguments);
         RunOnce = ()=>{};
     }
     // 发起网络请求
@@ -1243,8 +1241,8 @@
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Concerns Gecko) Chrome/104.0.0.0 Safari/537.36'
             }
         })
-        。then(response => response.json())
-        。then(async (data)=>{
+        .then(response => response.json())
+        .then(async (data)=>{
             let data_list:any = []
             let data_json = [];
             console.log(requestUrl)
@@ -1266,7 +1264,7 @@
                     //     //console.log(offset,nextPageData)
                     // }
                     // console.log(data)
-                    data_json.map((博客:any)=>{
+                    data_json.map((blog:any)=>{
                         let zhuanf_text = blog?.modules?.module_dynamic?.desc?.text||'';
                         let origin_text = blog?.orig?.modules?.module_dynamic?.desc?.text||'';
                         if(zhuanf_text){
@@ -1281,7 +1279,7 @@
                             }
                         }
                     })
-                    data = JSON.stringify(data_list)。replace(/\[.{1,12}\]/g,''); // 去除表情字符串
+                    data = JSON.stringify(data_list).replace(/\[.{1,12}\]/g,''); // 去除表情字符串
                     break;
                 case 'concerns':
                     // 关注列表
@@ -1289,25 +1287,25 @@
                     data_json.length>0 && data_json.map((i:any)=>{data_list.push(i?.uname)})
                     data = data_list.join(' ')
                     break;
-                默认:
+                default:
                     data = JSON.stringify(data?.data||[])
             }
              console.log(data)
              console.log('---------------------------')
             func(data)
         })
-        。catch(error=>console.log(error))
+        .catch(error=>console.log(error))
     }
     // 获取用户 id
     function getUserID(userNode:any){
         if (isNew) {
             return userNode?.querySelector('.user-name,.sub-user-name')?.dataset?.userId || userNode?.querySelector('.name')?.dataset?.usercardMid;
         } else {
-            return userNode?.querySelector('.name')?.dataset?.usercardMid || userNode.children[0]。href。replace(/[^\d]/g, "");
+            return userNode?.querySelector('.name')?.dataset?.usercardMid || userNode.children[0].href.replace(/[^\d]/g, "");
         }
     }
     // 去除新版关键词跳转搜索
-    function deleteJumpLink(评论:HTMLElement){
+    function deleteJumpLink(comment:HTMLElement){
         if(link_delete.checked){
             let jump_word = comment?.querySelectorAll('.jump-link.search-word') as NodeListOf<HTMLElement>;
             // console.log(jump_word)
@@ -1470,7 +1468,7 @@
         }
         // 创建检测按键
         if(!AutoDetect&&!tagList.isChecked(userID)){
-            let searchBtn = elmGetter.创建('<p class="search-btn">检测</p>') as HTMLElement; 
+            let searchBtn = elmGetter.create('<p class="search-btn">检测</p>') as HTMLElement; 
             searchBtn.onclick = ()=>{  // 点击检测后”屏蔽“按键的点击事件可能会失效 
                 detect(userID, userInfo, reply);
                 userInfo.removeChild(searchBtn);
@@ -1493,7 +1491,7 @@
     function tagInsertObserver(){
         elmGetter.each('.sub-reply-item,.content-warp,.list-item.reply-wrap,.reply-item.reply-wrap', document,(reply:HTMLElement)=>{
             let userInfo = reply?.querySelector('div.user-info:not(.section),.sub-user-info,div.user') as HTMLElement; // 用户信息
-            let 评论 = reply?.querySelector('span.reply-content,p.text,span.text-con') as HTMLElement;  // 用户评论
+            let comment = reply?.querySelector('span.reply-content,p.text,span.text-con') as HTMLElement;  // 用户评论
             // 标签检测
             let userID:string = getUserID(userInfo) // 获取用户 id 可能为 null
 
@@ -1501,33 +1499,33 @@
                 // 关键词或手动屏蔽用户评论
                 if(userCommentBlock(userID, reply, comment)){return}  //屏蔽用户则直接返回
                 // 去除跳转链接
-                deleteJumpLink(评论);
+                deleteJumpLink(comment);
                 // 判断是否已请求过该用户
                 detectUserTag(userID, userInfo, reply);
             }
         })
     }
     // 隐藏不可用功能
-    function hideOption(option:{Medal:boolean,评论:boolean,Like:boolean,Link:boolean}){
+    function hideOption(option:{Medal:boolean,Comment:boolean,Like:boolean,Link:boolean}){
         if(option.Medal){
             // 关闭勋章栏功能
             MedalShow = false;
         }
-        if(option.评论){
+        if(option.Comment){
             // 关闭并隐藏收起评论功能
             close_comment.checked = false;
-            (close_comment.parentNode as HTMLElement)。style。display='none';
+            (close_comment.parentNode as HTMLElement).style.display='none';
         }
         if(option.Like){
             // 关闭并隐藏动态批量点赞功能
             dynamic_btn.checked = false;
-            (dynamic_btn.parentNode as HTMLElement)。style。display='none';
-            script_like.style。display = 'none';
+            (dynamic_btn.parentNode as HTMLElement).style.display='none';
+            script_like.style.display = 'none';
         }
         if(option.Link){
             // 关闭并隐藏去除链接功能
             link_delete.checked = false;
-            (link_delete.parentNode as HTMLElement)。style。display='none';
+            (link_delete.parentNode as HTMLElement).style.display='none';
         }
     }
     // 读取本地油猴配置到脚本
@@ -1544,55 +1542,57 @@
         offset_page.innerText = maxOffset.toString()
 
         // 读取屏蔽选项
-        BlockOption = GM_getValue('BlockOption', {User:false,评论:false,Dynamic:false,Video:false});
-        ({User: block_user.checked, 评论: block_comment.checked, Dynamic: block_dynamic.checked, Video: block_video.checked} = BlockOption);
-        blackList = 新建 Set(GM_getValue('BlackList', []));
+        BlockOption = GM_getValue('BlockOption', {User:false,Comment:false,Dynamic:false,Video:false});
+        ({User: block_user.checked, Comment: block_comment.checked, Dynamic: block_dynamic.checked, Video: block_video.checked} = BlockOption);
+        blackList = new Set(GM_getValue('BlackList', []));
 
         tagMerge = GM_getValue('TagMerge',false);
         tag_merge.checked = tagMerge;
         link_delete.checked = GM_getValue('NoJump', false);
         close_comment.checked = GM_getValue('CloseComment', false);
         dynamic_btn.checked = GM_getValue('DynamicLike', false);
-        script_like.style。display = dynamic_btn.checked?'block':'none';
-        GM_getValue('Keyword', [])。map((密钥:any) => addKeyWord(密钥));
-        Object.values(GM_getValue('Tag', {}))。map((i:any)=>{addTag(i)});
+        script_like.style.display = dynamic_btn.checked?'block':'none';
+        GM_getValue('Keyword', []).map((key:any) => addKeyWord(key));
+        Object.values(GM_getValue('Tag', {})).map((i:any)=>{addTag(i)});
     }
 
     // 初始化标签列表
-    const tagList = 新建 TagList();  
-    const temp_keyword:{[密钥:number|string]:string} = {};
+    const tagList = new TagList();  
+    const temp_keyword:{[key:number|string]:string} = {};
     const MedalDict:any = {};  // 勋章对象
-    let tag:{[密钥:number|string]:{tag:string,text:string,reg:string,color:string,隐藏:boolean}} = {};  // 标签对象
+    let tag:{[key:number|string]:{tag:string,text:string,reg:string,color:string,hide:boolean}} = {};  // 标签对象
     let keyword:Array<string> = [];  // 关键词列表
     // 读取油猴数据，设置
     let tagMerge:boolean = false;  // 标签合并
     let MedalShow:boolean = false;  // 显示勋章墙
     let AutoDetect:boolean = false;  // 自动检测标签
     let DetectOption = {Repost:false,Concerns:false,Medal:false};  // 标签检测选项
-    let BlockOption = {User:false,评论:false,Dynamic:false,Video:false};  // 屏蔽选项
-    let blackList:Set<String> = 新建 Set();  // 用户黑名单
+    let BlockOption = {User:false,Comment:false,Dynamic:false,Video:false};  // 屏蔽选项
+    let blackList:Set<String> = new Set();  // 用户黑名单
     let maxOffset = 1;
     configInit();
     // 根据当前页面执行对应的函数
     switch(Page){
         case 'Main':  // 主页     
             mainPageBlock();
-            hideOption({Medal:true,评论:true,Like:true,Link:true});
+            hideOption({Medal:true,Comment:true,Like:true,Link:true});
             break;
         case 'Dynamic':  // 动态页面       
             dynamicPageBlock();
             tagInsertObserver();
             closeComment();
-            hideOption({Medal:true,评论:false,Like:false,Link:true});
+            hideOption({Medal:true,Comment:false,Like:false,Link:true});
             break;
         case 'Video':  // 视频页面          
             tagInsertObserver();
-            hideOption({Medal:false,评论:true,Like:true,Link:false});
+            hideOption({Medal:false,Comment:true,Like:true,Link:false});
             break;
-        默认:  // 番剧、电影界面         
+        default:  // 番剧、电影界面         
             tagInsertObserver();
-            hideOption({Medal:true,评论:true,Like:true,Link:false});
+            hideOption({Medal:true,Comment:true,Like:true,Link:false});
     }
 
     console.log('%c成分查询脚本已加载', 'color: #43bb88; font-size: 12px; font-weight: bolder');
 })();
+
+
